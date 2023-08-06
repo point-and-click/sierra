@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo "running pre-commit hook"
+gitleaks detect --source . --verbose

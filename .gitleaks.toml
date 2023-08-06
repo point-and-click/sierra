@@ -1,0 +1,11 @@
+title = "sierra gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "probably a bad idea"
+commits = [
+]
+paths = [
+]
