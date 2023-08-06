@@ -1,0 +1,5 @@
+elevenlabs
+openai
+python-decouple
+pyyaml
+flake8
