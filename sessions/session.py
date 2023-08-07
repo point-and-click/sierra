@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 
 from characters.character import Character
-from sessions.recorder import Recorder
+from sessions.recorder import Recorder, RECORD_BINDING
 from ai.open_ai import Whisper
 
 from utils import log_format, palette
@@ -23,21 +23,39 @@ class Session:
 
     def begin(self):
         while True:
-            self.recorder.record('temp/input.wav')
-            prompt = self.whisper.transcribe('temp/input.wav')
-            logging.info(f'{log_format.color(palette.material.orange)}'
-                         f'Input'
-                         f'{log_format.reset()}: '
-                         f'{prompt}')
-
-            response = self.character.chat(prompt)
             logging.info(
-                f'{log_format.color(palette.material.indigo)}'
-                f'{self.character.name.title().replace("_", " ")}'
+                f'{log_format.color(palette.material.orange)}'
+                f'Input'
                 f'{log_format.reset()}: '
-                f'{response}'
+                f'Press {str(RECORD_BINDING)} to record.'
             )
-            self.save(response)
+            self.recorder.record('temp/input.wav')
+            logging.info(
+                f'{log_format.color(palette.material.cyan)}'
+                f'Whisper'
+                f'{log_format.reset()}: '
+                f'Transcribing recorded audio.'
+            )
+            prompt = self.whisper.transcribe('temp/input.wav')
+
+            if input(
+                    f'{log_format.color(palette.material.orange)}'
+                    f'Input'
+                    f'{log_format.reset()}: '
+                    f'{log_format.color(palette.material.cyan)}'
+                    f'Whisper transcribed'
+                    f'{log_format.reset()}: '
+                    f'{prompt}\n'
+                    f'Does this look correct? (Y/N): '
+            ).lower().startswith('y'):
+                response = self.character.chat(prompt)
+                logging.info(
+                    f'{log_format.color(palette.material.indigo)}'
+                    f'{self.character.name.title().replace("_", " ")}'
+                    f'{log_format.reset()}: '
+                    f'{response}'
+                )
+                self.save(response)
 
     def save(self, response):
         with open(f'saves/{self.character.name}/{self.time}.clog', 'a') as f:

@@ -57,6 +57,9 @@ class Recorder:
         if key == RECORD_BINDING and not self.recording:
             self.recording = True
             logging.info(
+                f'{log_format.color(palette.material.orange)}'
+                f'Input'
+                f'{log_format.reset()}: '
                 f'{log_format.color(palette.material.red)}'
                 f'Recording'
                 f'{log_format.reset()}'
@@ -66,6 +69,9 @@ class Recorder:
         if key == RECORD_BINDING and self.recording:
             self.recording = False
             logging.info(
+                f'{log_format.color(palette.material.orange)}'
+                f'Input'
+                f'{log_format.reset()}: '
                 f'{log_format.color(palette.material.green)}'
                 f'Recording Stopped'
                 f'{log_format.reset()}'

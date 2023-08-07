@@ -21,7 +21,7 @@ class ChatGPT:
         logging.info(f'{log_format.color(palette.material.cyan)}'
                      f'OpenAI'
                      f'{log_format.reset()}: '
-                     f'Chat completion requested')
+                     f'Chat completion requested.')
         try:
             completion = openai.ChatCompletion.create(model=self.chat_model,
                                                       messages=messages,
