@@ -49,12 +49,6 @@ class Session:
                     f'Does this look correct? (Y/N): '
             ).lower().startswith('y'):
                 response = self.character.chat(prompt)
-                logging.info(
-                    f'{log_format.color(palette.material.indigo)}'
-                    f'{self.character.name.title().replace("_", " ")}'
-                    f'{log_format.reset()}: '
-                    f'{response}'
-                )
                 self.save(response)
 
     def save(self, response):

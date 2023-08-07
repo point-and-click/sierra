@@ -23,12 +23,19 @@ class Character:
                                        {"role": "user", "content": message}])
         self.history.append(response)
 
+        logging.info(
+            f'{log_format.color(palette.material.indigo)}'
+            f'{self.name.title().replace("_", " ")}'
+            f'{log_format.reset()}: '
+            f'{response}'
+        )
+
         if config('ENABLE_SPEECH', cast=bool):
             logging.info(
                 f'{log_format.color(palette.material.cyan)}'
                 f'ElevenLabs'
                 f'{log_format.reset()}: '
-                f'Speech synthesis requested'
+                f'Speech synthesis requested.'
             )
             self.eleven.speak(response, f'saves/{self.name}/audio/{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}.wav')
         else:

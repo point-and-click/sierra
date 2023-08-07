@@ -1,7 +1,7 @@
 pajama_sam:
   eleven:
     voice_model: eleven_monolingual_v1
-    voice: Harry Potter
+    voice: Bella
   chat_gpt:
     chat_model: gpt-3.5-turbo
     format: Please keep your responses short. Speak in the first person.
