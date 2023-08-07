@@ -1,10 +1,14 @@
+import logging
+
 from decouple import config
 import pyaudio
 import wave
 
 from pynput import keyboard
 
-RECORD_BINDING = keyboard.Key.space
+from utils import log_format, palette
+
+RECORD_BINDING = keyboard.Key.ctrl_l
 
 
 class Recorder:
@@ -15,27 +19,30 @@ class Recorder:
         self.fs = config('FS', cast=int)
 
         self.interface = pyaudio.PyAudio()
-        self.stream = None
-        self.frames = []
-
-        self.primed = True
-        self.recording = False
-
-        self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
-
-    def record(self, filename):
         self.stream = self.interface.open(channels=self.channels,
                                           rate=self.fs,
                                           format=self.sample_format,
                                           frames_per_buffer=self.chunk,
                                           input=True)
+        self.frames = []
 
+        self.recording = False
+        self.listener = None
+
+    def record(self, filename):
+        self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
-        self.listener.join()
+
+        self.stream.start_stream()
+
+        while not self.recording:
+            pass
+
+        while self.recording:
+            data = self.stream.read(self.chunk, exception_on_overflow=False)
+            self.frames.append(data)
 
         self.stream.stop_stream()
-        self.stream.close()
-        self.interface.terminate()
 
         wf = wave.open(filename, 'wb')
         wf.setnchannels(self.channels)
@@ -44,18 +51,23 @@ class Recorder:
         wf.writeframes(b''.join(self.frames))
         wf.close()
 
+        self.frames = []
+
     def on_press(self, key):
         if key == RECORD_BINDING and not self.recording:
             self.recording = True
-            print('Recording')
-        if key == RECORD_BINDING and self.recording:
-            # TODO: Figure out this weird number
-            for i in range(0, int(self.fs / self.chunk * 0.1)):
-                data = self.stream.read(self.chunk, exception_on_overflow=False)
-                self.frames.append(data)
+            logging.info(
+                f'{log_format.color(palette.material.red)}'
+                f'Recording'
+                f'{log_format.reset()}'
+            )
 
     def on_release(self, key):
         if key == RECORD_BINDING and self.recording:
             self.recording = False
-            print('Recording Stopped')
+            logging.info(
+                f'{log_format.color(palette.material.green)}'
+                f'Recording Stopped'
+                f'{log_format.reset()}'
+            )
             self.listener.stop()

@@ -1,9 +1,11 @@
+import logging
 from datetime import datetime
 
 from decouple import config
 
-from characters.eleven import Eleven
-from characters.open_ai import ChatGPT
+from ai.eleven import Eleven
+from ai.open_ai import ChatGPT
+from utils import log_format, palette
 
 
 class Character:
@@ -11,17 +13,30 @@ class Character:
         self.name = name
 
         self.eleven = Eleven(name)
-        self.open_ai = ChatGPT(name)
+        self.chat_gpt = ChatGPT(name)
 
         self.history = []
 
     def chat(self, message):
-        response = self.open_ai.chat([{"role": "system", "content": f'{self.open_ai.role} {self.open_ai.format}'},
-                                      *[{"role": "assistant", "content": entry} for entry in self.history],
-                                      {"role": "user", "content": message}])
+        response = self.chat_gpt.chat([{"role": "system", "content": f'{self.chat_gpt.role} {self.chat_gpt.format}'},
+                                       *[{"role": "assistant", "content": entry} for entry in self.history],
+                                       {"role": "user", "content": message}])
         self.history.append(response)
 
         if config('ENABLE_SPEECH', cast=bool):
+            logging.info(
+                f'{log_format.color(palette.material.cyan)}'
+                f'ElevenLabs'
+                f'{log_format.reset()}: '
+                f'Speech synthesis requested'
+            )
             self.eleven.speak(response, f'saves/{self.name}/audio/{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}.wav')
+        else:
+            logging.info(
+                f'{log_format.color(palette.material.cyan)}'
+                f'ElevenLabs'
+                f'{log_format.reset()}: '
+                f'Speech synthesis is disabled. Skipping.'
+            )
 
         return response

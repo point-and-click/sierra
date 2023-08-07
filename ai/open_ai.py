@@ -5,6 +5,7 @@ import whisper
 from decouple import config
 
 from characters import characters
+from utils import log_format, palette
 
 
 class ChatGPT:
@@ -13,11 +14,14 @@ class ChatGPT:
         self.role = None
         self.format = None
 
-        for k, v in characters.get(name, self).get('open_ai').items():
+        for k, v in characters.get(name, self).get('chat_gpt').items():
             setattr(self, k, v)
 
     def chat(self, messages):
-        logging.info('OpenAI: Chat Completion Requested')
+        logging.info(f'{log_format.color(palette.material.cyan)}'
+                     f'OpenAI'
+                     f'{log_format.reset()}: '
+                     f'Chat completion requested')
         try:
             completion = openai.ChatCompletion.create(model=self.chat_model,
                                                       messages=messages,
@@ -39,5 +43,5 @@ class Whisper:
 
     def transcribe(self, audio_file):
         model = whisper.load_model(self.model)
-        result = model.transcribe(audio_file)
+        result = model.transcribe(audio_file, fp16=False)
         return result["text"]
