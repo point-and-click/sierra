@@ -2,5 +2,8 @@ elevenlabs
 openai
 openai-whisper
 python-decouple
+pyaudio
 pyyaml
 flake8
+
+pynput
