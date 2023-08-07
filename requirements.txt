@@ -1,5 +1,6 @@
 elevenlabs
 openai
+openai-whisper
 python-decouple
 pyyaml
 flake8

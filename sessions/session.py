@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from characters.character import Character
@@ -16,8 +17,11 @@ class Session:
 
     def begin(self):
         while True:
-            prompt = input('')
-            self.save(self.character.chat(prompt))
+            prompt = input('Input: ')
+
+            response = self.character.chat(prompt)
+            logging.info(f'{self.character.name.title()}: {response}')
+            self.save(response)
 
     def save(self, response):
         with open(f'saves/{self.character.name}/{self.time}.clog', 'a') as f:

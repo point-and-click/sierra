@@ -1,6 +1,3 @@
-from datetime import datetime
-from time import strftime
-
 import elevenlabs
 
 from characters import characters
