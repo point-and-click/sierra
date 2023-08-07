@@ -4,6 +4,8 @@ import wave
 
 from pynput import keyboard
 
+RECORD_BINDING = keyboard.Key.space
+
 
 class Recorder:
     def __init__(self):
@@ -19,6 +21,8 @@ class Recorder:
         self.primed = True
         self.recording = False
 
+        self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
+
     def record(self, filename):
         self.stream = self.interface.open(channels=self.channels,
                                           rate=self.fs,
@@ -26,8 +30,8 @@ class Recorder:
                                           frames_per_buffer=self.chunk,
                                           input=True)
 
-        with keyboard.Listener(on_press=self.on_press, on_release=self.on_release) as listener:
-            listener.join()
+        self.listener.start()
+        self.listener.join()
 
         self.stream.stop_stream()
         self.stream.close()
@@ -41,15 +45,17 @@ class Recorder:
         wf.close()
 
     def on_press(self, key):
-        if key == keyboard.Key.space and not self.recording:
+        if key == RECORD_BINDING and not self.recording:
             self.recording = True
             print('Recording')
-        if key == keyboard.Key.space and self.recording:
-            data = self.stream.read(self.chunk)
-            self.frames. append(data)
+        if key == RECORD_BINDING and self.recording:
+            # TODO: Figure out this weird number
+            for i in range(0, int(self.fs / self.chunk * 0.1)):
+                data = self.stream.read(self.chunk, exception_on_overflow=False)
+                self.frames.append(data)
 
     def on_release(self, key):
-        if key == keyboard.Key.space and self.recording:
+        if key == RECORD_BINDING and self.recording:
             self.recording = False
             print('Recording Stopped')
-            return False
+            self.listener.stop()
