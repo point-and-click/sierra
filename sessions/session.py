@@ -52,5 +52,5 @@ class Session:
                 self.save(response)
 
     def save(self, response):
-        with open(f'saves/{self.character.name}/{self.time}.clog', 'a') as f:
+        with open(f'saves/{self.character.name}/{datetime.now().strftime("%Y-%m-%d %H-%M-%S")}.clog', 'a') as f:
             f.write(response)
