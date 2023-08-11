@@ -5,23 +5,27 @@ from decouple import config
 
 from ai.eleven import Eleven
 from ai.open_ai import ChatGPT
+from characters import characters
+from characters.task import Task
 from utils import log_format, palette
 
 
 class Character:
     def __init__(self, name):
         self.name = name
+        self.task = None
 
-        self.eleven = Eleven(name)
-        self.chat_gpt = ChatGPT(name)
+        # These values are populated by the character yaml definitions.
+        self.motivation = None
+        self.format = None
+        for k, v in characters.get(name, self).items():
+            setattr(self, k, v)
 
-        self.history = []
+    def set_task(self, name):
+        self.task = Task(name)
 
-    def chat(self, message):
-        response = self.chat_gpt.chat([{"role": "system", "content": f'{self.chat_gpt.role} {self.chat_gpt.format}'},
-                                       *[{"role": "assistant", "content": entry} for entry in self.history],
-                                       {"role": "user", "content": message}])
-        self.history.append(response)
+    def chat(self, messages):
+        response = ChatGPT.chat(messages)
 
         logging.info(
             f'{log_format.color(palette.material.indigo)}'
@@ -37,7 +41,7 @@ class Character:
                 f'{log_format.reset()}: '
                 f'Speech synthesis requested.'
             )
-            self.eleven.speak(response, f'saves/{self.name}/audio/{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}.wav')
+            Eleven.speak(response, f'saves/{self.name}/audio/{datetime.now().strftime("%Y-%m-%d %H-%M-%S")}.wav')
         else:
             logging.info(
                 f'{log_format.color(palette.material.cyan)}'
