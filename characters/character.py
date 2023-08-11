@@ -25,7 +25,7 @@ class Character:
         self.task = Task(name)
 
     def chat(self, messages):
-        response = ChatGPT.chat(messages)
+        response, usage = ChatGPT.chat(messages)
 
         logging.info(
             f'{log_format.color(palette.material.indigo)}'
@@ -50,4 +50,4 @@ class Character:
                 f'Speech synthesis is disabled. Skipping.'
             )
 
-        return response
+        return response, usage
