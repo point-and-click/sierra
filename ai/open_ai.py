@@ -7,6 +7,8 @@ from decouple import config
 
 from utils import log_format, palette
 
+TOKENS = 0
+
 
 class MessageRole(Enum):
     SYSTEM = 'system'
@@ -25,12 +27,13 @@ class ChatGPT:
             completion = openai.ChatCompletion.create(model=config('OPENAI_CHAT_COMPLETION_MODEL'),
                                                       messages=messages,
                                                       max_tokens=config('OPENAI_CHAT_COMPLETION_MAX_TOKENS', cast=int))
+
         except openai.error.TryAgain as err:
             logging.error(err)
             return
 
         try:
-            return completion.choices[0].message.content
+            return completion.choices[0].message.content, completion.usage
         except IndexError as err:
             logging.warning(err)
             return
