@@ -1,0 +1,20 @@
+chess:
+  user_history: true
+  assistant_history: true
+  description: >
+    You sit down at a table that has a chess board and all of the pieces already set up. I am your opponent sitting across
+    from you. You play as your character. Be expressive.
+  summary: >
+    Summarize the game history. Be concise and use chess notation to mark every previous move.
+
+pajama_sam_game:
+  user_history: true
+  assistant_history: true
+  description: >
+    You are in your room and you are reading your comic book about the super hero, Pajama Man. You are wearing your 
+    pajamas, and you are holding your flashlight. Your mom just shut the lights off for the night.
+  summary: >
+    Summarize the content. Be as concise as possible.
+    Place emphasis on your primary objective, current goal, and any
+    items that you posses in your inventory, or in the world and their
+    locations

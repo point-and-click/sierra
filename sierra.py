@@ -13,5 +13,6 @@ elevenlabs.set_api_key(config('ELEVENLABS_API_KEY'))
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(message)s')
 
 if __name__ == '__main__':
-    with Session(config('CHARACTER')) as session:
+    with Session(config('CHARACTER'), config('TASK')) as session:
+
         session.begin()
