@@ -1,0 +1,8 @@
+name: Chess
+description: >
+  You sit down at a table that has a chess board and all of the pieces already set up. I am your opponent sitting across from you. You play as your character. Be expressive.
+summary:
+  user: true
+  assistant: true
+  description: >
+    Summarize the game history. Be concise and use chess notation to mark every previous move.
