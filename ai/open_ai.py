@@ -5,7 +5,7 @@ import openai
 import whisper
 from decouple import config
 
-from utils import log_format, palette
+from utils.logging import log
 
 TOKENS = 0
 
@@ -19,10 +19,8 @@ class MessageRole(Enum):
 class ChatGPT:
     @staticmethod
     def chat(messages):
-        logging.info(f'{log_format.color(palette.material.cyan)}'
-                     f'OpenAI'
-                     f'{log_format.reset()}: '
-                     f'Chat completion requested.')
+        log.info('OpenAI: Chat completion requested.')
+
         try:
             completion = openai.ChatCompletion.create(model=config('OPENAI_CHAT_COMPLETION_MODEL'),
                                                       messages=messages,
@@ -42,6 +40,7 @@ class ChatGPT:
 class Whisper:
     @staticmethod
     def transcribe(audio_file):
+        log.info('Whisper: Transcribing recorded audio.')
         model = whisper.load_model(config('OPENAI_WHISPER_MODEL'))
         result = model.transcribe(audio_file, fp16=False)
         return result["text"]
