@@ -1,9 +1,8 @@
 elevenlabs
+flake8
 openai
 openai-whisper
-python-decouple
 pyaudio
-pyyaml
-flake8
-
 pynput
+python-decouple
+pyyaml
