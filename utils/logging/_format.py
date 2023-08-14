@@ -1,5 +1,8 @@
 _set_graphics_mode = 'm'
 
+# For working around SyntaxError: f-string expression part cannot include a backslash
+nl = '\n'
+tab = '\t'
 
 def color(hex_value):
     return _control_sequence(
