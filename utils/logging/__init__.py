@@ -19,7 +19,6 @@ replacements = {
     'Input': f'{_format.color(palette.material.orange)}Input{_format.reset()}',
     'Recording': f'{_format.color(palette.material.red)}Recording{_format.reset()}',
     # Characters
-    'Character': f'{_format.color(palette.material.indigo)}Character{_format.reset()}',
     '\(([^\)]+?)\)': f'{_format.color(palette.material.blue)}(\\g<1>){_format.reset()}',
 }
 
