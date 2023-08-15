@@ -109,8 +109,8 @@ class Session:
 
     def summarize(self):
         messages = [
-            {"role": MessageRole.SYSTEM.value, "content": f'{self.character.task.description}'},
-            {"role": "system", "content": self.character.task.summary},
+            {"role": MessageRole.SYSTEM.value, "content": f'{self.task.description}'},
+            {"role": "system", "content": self.task.summary.description},
             *[{"role": entry.role, "content": entry.content} for entry in self.history]
         ]
 
