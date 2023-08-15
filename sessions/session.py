@@ -84,7 +84,7 @@ class Session:
     def assess(self, usage):
         history_word_count = sum([len(entry.content.split()) for entry in self.history])
 
-        if config('DEBUG_USAGE'):
+        if config('DEBUG_USAGE', cast=bool):
             log.info(
                 f'Usage: OpenAI'
                 f'\n\tPrompt: '

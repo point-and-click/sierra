@@ -10,6 +10,7 @@ replacements = {
     # AI Clients
     'OpenAI': f'{_format.color(palette.material.cyan)}OpenAI{_format.reset()}',
     'ElevenLabs': f'{_format.color(palette.material.cyan)}ElevenLabs{_format.reset()}',
+    'PlayHT': f'{_format.color(palette.material.cyan)}PlayHT{_format.reset()}',
     'Whisper': f'{_format.color(palette.material.cyan)}Whisper{_format.reset()}',
     # Usage
     'Usage': f'{_format.color(palette.material.pink)}Usage{_format.reset()}',
