@@ -1,0 +1,16 @@
+name: Space Quest V
+description: >
+  You've stumble across a video game console with Space Quest V loaded up and it piques your curiosity. 
+  You invest your whole heart into help our hero Roger Wilco, a clumsy dimwitted janitor, through his struggles and help him achieve his lifelong dream of becoming a space captain. 
+  You have very limited controls; you can make Roger walk, talk, shout, pick up, or inspect things.
+summary:
+  user: true
+  assistant: true
+  description: >
+    Summarize the content. Be as concise. 
+    Place emphasis on:
+    1) your primary objective 
+    2) current goal 
+    3) Any items:
+      3a) In your inventory 
+      3b) In the world and their locations and challenges to obtaining said items

@@ -8,6 +8,8 @@ import tempfile
 
 from decouple import config
 
+from utils.word_wrap import WordWrap
+
 
 class PlayHt:
     @staticmethod
@@ -44,6 +46,9 @@ class PlayHt:
             with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                 temp_file.write(response.content)
                 temp_file.seek(0)  # Move back to the beginning of the file
+
+                with open('obs_text.txt', "w") as f:
+                    f.write(WordWrap.word_wrap(text, 75))
 
                 # Open a new stream for audio playback
                 stream = p.open(format=pyaudio.paInt16,
