@@ -6,3 +6,5 @@ pyaudio
 pynput
 python-decouple
 pyyaml
+
+audioread
