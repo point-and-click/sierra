@@ -1,8 +1,8 @@
 
-from decouple import config
-import pyaudio
 import wave
 
+import pyaudio
+from decouple import config
 from pynput import keyboard
 
 from utils.logging import log

@@ -12,6 +12,7 @@ class Character:
         self.name = yaml.get('name', None)
         self.motivation = yaml.get('motivation', None)
         self.format = yaml.get('format', None)
+        self.voice = yaml.get('voice', None)
 
     def chat(self, messages):
         response, usage = ChatGPT.chat(messages)
@@ -20,7 +21,7 @@ class Character:
 
         if config('ENABLE_SPEECH', cast=bool):
             log.info('ElevenLabs: Speech synthesis requested')
-            Eleven.speak(response, f'saves/{self.name}/audio/{datetime.now().strftime("%Y-%m-%d %H-%M-%S")}.wav')
+            Eleven.speak(response, self.voice, f'saves/audio/{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.wav')
         else:
             log.info('ElevenLabs: Speech synthesis is disabled. Skipping.')
 

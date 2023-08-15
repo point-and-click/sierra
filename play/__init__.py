@@ -1,4 +1,5 @@
 from glob import glob
+
 from yaml import safe_load
 
 from play.character import Character
