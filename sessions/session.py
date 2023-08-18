@@ -2,6 +2,7 @@ import pickle
 from datetime import datetime
 
 from decouple import config
+from pynput import keyboard
 
 from ai import open_ai
 from ai.open_ai import Whisper, ChatGPT, MessageRole
@@ -10,6 +11,9 @@ from sessions.history import History
 from sessions.recorder import Recorder, RECORD_BINDING
 from utils.logging import log
 from utils.logging._format import nl, tab
+
+ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
+DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
 
 
 class Session:
@@ -25,6 +29,11 @@ class Session:
 
         self.response_word_count = 0
 
+        self.listener = None
+        self.reviewed_summary = False
+        self.accepted_summary = False
+        self.declined_summary = False
+
     def __enter__(self):
         return self
 
@@ -34,6 +43,7 @@ class Session:
     def __getstate__(self):
         state = self.__dict__.copy()
         del state['recorder']
+        del state['listener']
         return state
 
     # The way this works is maddening.
@@ -105,9 +115,13 @@ class Session:
             )
 
         if history_word_count > config("OPENAI_CHAT_COMPLETION_MAX_WORD_COUNT", cast=int):
-            self.summarize()
+            while not self.summarize():
+                pass
 
     def summarize(self):
+        self.accepted_summary = False
+        self.declined_summary = False
+
         messages = [
             {"role": MessageRole.SYSTEM.value, "content": f'{self.task.description}'},
             {"role": "system", "content": self.task.summary.description},
@@ -115,10 +129,27 @@ class Session:
         ]
 
         summary, usage = ChatGPT.chat(messages)
-
-        self.history = [History(MessageRole.ASSISTANT.value, summary)]
-
         log.info(f'OpenAI: Summary: {summary}')
+
+        if config("REVIEW_SUMMARY", cast=bool):
+            self.listener = keyboard.Listener(on_press=self.on_press)
+            self.listener.start()
+
+            log.info('Waiting to accept summary.')
+            while not self.accepted_summary and not self.declined_summary:
+                pass
+
+            if self.declined_summary:
+                log.info('Summary declined.')
+                self.listener.stop()
+                return False
+
+        self.history = ([History(MessageRole.ASSISTANT.value, summary)]
+                        + self.history[-config('PRESERVE_HISTORY_LINES', cast=int):])
+
+        self.listener.stop()
+        log.info('Summary accepted.')
+        return True
 
     def save(self):
         pickle.dump(self, open(f'saves/{self.name}.sierra', 'wb'))
@@ -128,3 +159,9 @@ class Session:
         log.info(
             f'Loaded history:\n\t{f"{nl}{tab}".join([repr(entry) for entry in self.history])}'
         )
+
+    def on_press(self, key):
+        if key == ACCEPT_SUMMARY_BINDING:
+            self.accepted_summary = True
+        elif key == DECLINE_SUMMARY_BINDING:
+            self.declined_summary = True
