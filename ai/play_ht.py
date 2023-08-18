@@ -44,6 +44,7 @@ class PlayHt:
             p = pyaudio.PyAudio()
             # Create a temporary file to save the audio content
             with open('temp/output.wav', 'wb') as temp_file:
+            #with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                 temp_file.write(response.content)
                 temp_file.seek(0)  # Move back to the beginning of the file
 
