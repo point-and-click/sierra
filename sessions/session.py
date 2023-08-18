@@ -30,7 +30,6 @@ class Session:
         self.response_word_count = 0
 
         self.listener = None
-        self.reviewed_summary = False
         self.accepted_summary = False
         self.declined_summary = False
 
@@ -123,9 +122,8 @@ class Session:
         self.declined_summary = False
 
         messages = [
-            {"role": MessageRole.SYSTEM.value, "content": f'{self.task.description}'},
-            {"role": "system", "content": self.task.summary.description},
-            *[{"role": entry.role, "content": entry.content} for entry in self.history]
+            *[{"role": entry.role, "content": entry.content} for entry in self.history],
+            {"role": "system", "content": self.task.summary.description}
         ]
 
         summary, usage = ChatGPT.chat(messages)
