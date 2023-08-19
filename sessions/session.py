@@ -84,7 +84,7 @@ class Session:
     def assess(self, usage):
         history_word_count = sum([len(entry.content.split()) for entry in self.history])
 
-        if config('DEBUG_USAGE'):
+        if config('DEBUG_USAGE', cast=bool):
             log.info(
                 f'Usage: OpenAI'
                 f'\n\tPrompt: '
@@ -109,8 +109,8 @@ class Session:
 
     def summarize(self):
         messages = [
-            {"role": MessageRole.SYSTEM.value, "content": f'{self.character.task.description}'},
-            {"role": "system", "content": self.character.task.summary},
+            {"role": MessageRole.SYSTEM.value, "content": f'{self.task.description}'},
+            {"role": "system", "content": self.task.summary.description},
             *[{"role": entry.role, "content": entry.content} for entry in self.history]
         ]
 
