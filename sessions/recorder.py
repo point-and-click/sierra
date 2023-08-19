@@ -7,7 +7,7 @@ from pynput import keyboard
 
 from utils.logging import log
 
-RECORD_BINDING = keyboard.Key.ctrl_l
+RECORD_BINDING = keyboard.Key.ctrl
 
 
 class Recorder:
