@@ -12,7 +12,7 @@ class Character:
     def __init__(self, yaml):
         self.name = yaml.get('name', None)
         self.motivation = yaml.get('motivation', None)
-        self.format = yaml.get('format', None)
+        self.rules = yaml.get('rules', None)
         self.voice = yaml.get('voice', None)
 
     def chat(self, messages):
