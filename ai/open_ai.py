@@ -29,6 +29,10 @@ class ChatGPT:
         except openai.error.TryAgain as err:
             logging.error(err)
             return
+        except openai.error.Timeout as err:
+            logging.error(err)
+            ChatGPT.chat(messages)
+            return
 
         try:
             return completion.choices[0].message.content, completion.usage
