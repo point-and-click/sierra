@@ -24,7 +24,7 @@ class Character:
             tts_service = config('TTS_SERVICE')
             log.info(f'{tts_service}: Speech synthesis requested')
             if tts_service == 'PlayHT':
-                PlayHt.speak(response)
+                PlayHt.speak(response, self.voice)
             elif tts_service == 'ElevenLabs':
                 Eleven.speak(response, self.voice, f'saves/audio/{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.wav')
         else:
