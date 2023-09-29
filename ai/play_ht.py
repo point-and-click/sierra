@@ -29,15 +29,15 @@ class PlayHt:
         return response.text
 
     @staticmethod
-    def speak(text):
+    def speak(text, voice):
         if config('PLAY_HT_STREAM', cast=bool):
-            PlayHt.stream_tts(text)
+            PlayHt.stream_tts(text, voice)
         else:
-            PlayHt.download_and_play_tts(text)
+            PlayHt.download_and_play_tts(text, voice)
 
     @staticmethod
-    def download_and_play_tts(text):
-        audio_link = PlayHt.get_audio_link(text)
+    def download_and_play_tts(text, voice):
+        audio_link = PlayHt.get_audio_link(text, voice)
 
         response = requests.get(audio_link)
 
@@ -73,7 +73,7 @@ class PlayHt:
             print("Failed to retrieve audio data.")
 
     @staticmethod
-    def get_audio_link(text):
+    def get_audio_link(text, voice):
         url = "https://play.ht/api/v2/tts"
         headers = {
             "accept": "application/json",
@@ -86,7 +86,7 @@ class PlayHt:
             "output_format": "mp3",
             "speed": 1,
             "sample_rate": config('SAMPLE_RATE', cast=int),
-            "voice": config('PLAY_HT_VOICE'),
+            "voice": voice,
             "text": text,
             "temperature": 1.25
         }
@@ -105,7 +105,7 @@ class PlayHt:
             log.info("Request to generate audio from Play HT failed.")
 
     @staticmethod
-    def stream_tts(text):
+    def stream_tts(text, voice):
 
         pygame.init()
         screen = pygame.display.set_mode((800, 600))
@@ -119,7 +119,7 @@ class PlayHt:
         max_rotation = 6
         max_amplitude = 12000
 
-        audio_stream_url = PlayHt.fetch_audio_stream_url(text)
+        audio_stream_url = PlayHt.fetch_audio_stream_url(text, voice)
 
         session = requests.Session()
 
@@ -182,7 +182,7 @@ class PlayHt:
         session.close()
 
     @staticmethod
-    def fetch_audio_stream_url(text):
+    def fetch_audio_stream_url(text, voice):
         url = "https://play.ht/api/v2/tts/stream"
 
         payload = {
@@ -190,7 +190,7 @@ class PlayHt:
             "output_format": "mp3",
             "speed": 1,
             "sample_rate": config('SAMPLE_RATE', cast=int),
-            "voice": config('PLAY_HT_VOICE'),
+            "voice": voice,
             "text": text
         }
         headers = {
