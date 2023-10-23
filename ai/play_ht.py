@@ -1,6 +1,7 @@
 import json
 
 import audioread
+import numpy
 import numpy as np
 import pyaudio
 import requests
@@ -108,31 +109,31 @@ class PlayHt:
     def stream_tts(text, voice):
 
         pygame.init()
-        screen = pygame.display.set_mode((800, 600))
+        screen = pygame.display.set_mode((275, 338))
         screen.fill((0, 255, 0))
         pygame.display.update()
-        image = pygame.image.load('zapp.png').convert_alpha()
+        image = pygame.image.load('other_poop.png').convert_alpha()
         image_rect = image.get_rect()
-        pygame.display.set_caption("Zapp")
+        pygame.display.set_caption("Other Poop")
         current_angle = 0
-        max_angle = 50
-        max_rotation = 6
-        max_amplitude = 12000
+        max_angle = 35
+        max_rotation = 3
+        max_amplitude = 1000
 
-        audio_stream_url = PlayHt.fetch_audio_stream_url(text, voice)
+        response = PlayHt.fetch_audio_stream_url(text, voice)
 
-        session = requests.Session()
-
-        headers = {
-            "AUTHORIZATION": f'Bearer {config("PLAY_HT_API_KEY")}',
-            "X-USER-ID": config("PLAY_HT_USER_ID")
-        }
-
-        response = session.get(audio_stream_url, headers=headers, stream=True)
-
-        while response.status_code == 504:
-            log.info("Play.HT Gateway timeout. Retrying...")
-            response = session.get(audio_stream_url, headers=headers, stream=True)
+        # session = requests.Session()
+        #
+        # headers = {
+        #     "AUTHORIZATION": f'Bearer {config("PLAY_HT_API_KEY")}',
+        #     "X-USER-ID": config("PLAY_HT_USER_ID")
+        # }
+        #
+        # response = session.get(audio_stream_url, headers=headers, stream=True)
+        #
+        # while response.status_code == 504:
+        #     log.info("Play.HT Gateway timeout. Retrying...")
+        #     response = session.get(audio_stream_url, headers=headers, stream=True)
 
         if response.status_code == 200:
             p = pyaudio.PyAudio()
@@ -157,12 +158,14 @@ class PlayHt:
                         audio_array = np.frombuffer(buf, dtype=np.int16)
 
                         amplitude = np.max(np.abs(audio_array))
+                        if amplitude > max_amplitude:
+                            max_amplitude = amplitude
 
                         scaled_amplitude = min(amplitude, max_amplitude) / max_amplitude
                         target_angle = scaled_amplitude * max_angle
                         target_rotation_amount = target_angle - prev_angle
                         actual_rotation_amount = max(-max_rotation, min(max_rotation, target_rotation_amount))
-                        new_angle = max(-max_angle, min(max_angle, actual_rotation_amount))
+                        new_angle = max(-max_angle, min(max_angle, actual_rotation_amount + prev_angle))
                         rotated_image = pygame.transform.rotate(image, new_angle)
                         rotated_rect = rotated_image.get_rect(center=image_rect.center)
                         prev_angle = new_angle
@@ -171,15 +174,32 @@ class PlayHt:
                         screen.fill((0, 255, 0))
                         screen.blit(rotated_image, rotated_rect)
                         pygame.display.update()
-                        stream.write(audio_array.tobytes())
 
+                        volume_adjusted_audio_bytes = PlayHt.audio_data_list_set_volume(audio_array, 2)
+
+                        stream.write(volume_adjusted_audio_bytes.tobytes())
+
+                print(max_amplitude)
                 stream.stop_stream()
                 stream.close()
 
             temp_file.close()
 
         pygame.quit()
-        session.close()
+        # session.close()
+
+    @staticmethod
+    def audio_data_list_set_volume(data_list, volume):
+        adjusted_data_list = data_list.copy()
+
+        for i in range(len(data_list)):
+            chunk = numpy.fromstring(data_list[i], numpy.int16)
+
+            chunk = chunk * volume
+
+            adjusted_data_list[i] = chunk.astype(numpy.int16)
+
+        return adjusted_data_list
 
     @staticmethod
     def fetch_audio_stream_url(text, voice):
@@ -200,6 +220,6 @@ class PlayHt:
             "content-type": "application/json"
         }
 
-        response = requests.post(url, json=payload, headers=headers)
+        return requests.post(url, json=payload, headers=headers)
 
-        return json.loads(str(response.text))['href']
+        # return json.loads(str(response.text))['href']
