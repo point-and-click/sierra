@@ -2,6 +2,8 @@ class WordWrap:
 
     @staticmethod
     def word_wrap(input_string, max_length):
+        input_string = input_string.encode("ascii", "ignore")
+        input_string = input_string.decode()
         words = str(input_string).split()
         result = []
         current_line = ""

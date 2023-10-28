@@ -1,9 +1,11 @@
+import json
 import logging
 from enum import Enum
 
 import openai
 import whisper
 from decouple import config
+from openai import FineTuningJob
 
 from utils.logging import log
 
@@ -39,6 +41,22 @@ class ChatGPT:
         except IndexError as err:
             logging.warning(err)
             return
+
+    @staticmethod
+    def fine_tune(json_file_path):
+        file = openai.File.create(
+            file=open(json_file_path, "rb"),
+            purpose='fine-tune'
+        )
+
+        job = openai.FineTuningJob.create(training_file=file.openai_id, model="gpt-3.5-turbo")
+
+        print(job)
+
+    @staticmethod
+    def list_jobs():
+        response = openai.FineTune.list(limit=10)
+        print(response)
 
 
 class Whisper:
