@@ -114,26 +114,26 @@ class PlayHt:
         pygame.display.update()
         image = pygame.image.load('other_poop.png').convert_alpha()
         image_rect = image.get_rect()
-        pygame.display.set_caption("Other Poop")
+        pygame.display.set_caption("Sierra")
         current_angle = 0
         max_angle = 35
         max_rotation = 3
         max_amplitude = 1000
 
-        response = PlayHt.fetch_audio_stream_url(text, voice)
+        audio_stream_url = PlayHt.fetch_audio_stream_url(text, voice)
 
-        # session = requests.Session()
-        #
-        # headers = {
-        #     "AUTHORIZATION": f'Bearer {config("PLAY_HT_API_KEY")}',
-        #     "X-USER-ID": config("PLAY_HT_USER_ID")
-        # }
-        #
-        # response = session.get(audio_stream_url, headers=headers, stream=True)
-        #
-        # while response.status_code == 504:
-        #     log.info("Play.HT Gateway timeout. Retrying...")
-        #     response = session.get(audio_stream_url, headers=headers, stream=True)
+        session = requests.Session()
+
+        headers = {
+            "AUTHORIZATION": f'Bearer {config("PLAY_HT_API_KEY")}',
+            "X-USER-ID": config("PLAY_HT_USER_ID")
+        }
+
+        response = session.get(audio_stream_url, headers=headers, stream=True)
+
+        while response.status_code == 504:
+            log.info("Play.HT Gateway timeout. Retrying...")
+            response = session.get(audio_stream_url, headers=headers, stream=True)
 
         if response.status_code == 200:
             p = pyaudio.PyAudio()
@@ -175,7 +175,7 @@ class PlayHt:
                         screen.blit(rotated_image, rotated_rect)
                         pygame.display.update()
 
-                        volume_adjusted_audio_bytes = PlayHt.audio_data_list_set_volume(audio_array, 2)
+                        volume_adjusted_audio_bytes = PlayHt.audio_data_list_set_volume(audio_array, 1)
 
                         stream.write(volume_adjusted_audio_bytes.tobytes())
 
@@ -220,6 +220,6 @@ class PlayHt:
             "content-type": "application/json"
         }
 
-        return requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers)
 
-        # return json.loads(str(response.text))['href']
+        return json.loads(str(response.text))['href']

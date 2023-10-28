@@ -68,10 +68,9 @@ class Session:
 
             messages = [
                 {"role": MessageRole.SYSTEM.value, "content": f'{self.character.motivation} '
-                                                              f'{self.task.description} '
-                                                              f'{self.character.rules}'},
+                                                              f'{self.task.description} '},
                 *[{"role": entry.role, "content": entry.content} for entry in self.history],
-                {"role": MessageRole.USER.value, "content": f'{prompt} {self.character.rules}'}
+                {"role": MessageRole.USER.value, "content": f'{self.character.rules}' f'{prompt}'}
             ]
             response, usage = self.character.chat(messages)
 
