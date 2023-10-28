@@ -1,6 +1,7 @@
 import pickle
 from datetime import datetime
 
+import pygame
 from decouple import config
 from pynput import keyboard
 
@@ -43,6 +44,7 @@ class Session:
         state = self.__dict__.copy()
         del state['recorder']
         del state['listener']
+        del state['character']
         return state
 
     # The way this works is maddening.
@@ -58,6 +60,11 @@ class Session:
         )
 
     def begin(self):
+        pygame.init()
+        screen = pygame.display.set_mode((275, 338))
+        screen.fill((0, 255, 0))
+        pygame.display.update()
+        pygame.display.set_caption("Sierra")
         while True:
             log.info(f'\nInput: Press {str(RECORD_BINDING)} to record.')
             self.recorder.record('temp/input.wav')
@@ -67,12 +74,11 @@ class Session:
             log.info(f'Whisper: Transcribed: {prompt}')
 
             messages = [
-                {"role": MessageRole.SYSTEM.value, "content": f'{self.character.motivation} '
-                                                              f'{self.task.description} '},
+                {"role": MessageRole.SYSTEM.value, "content": f'{self.task.description} '},
                 *[{"role": entry.role, "content": entry.content} for entry in self.history],
-                {"role": MessageRole.USER.value, "content": f'{self.character.rules}' f'{prompt}'}
+                {"role": MessageRole.USER.value, "content": f'{self.character.motivation} {self.character.rules} {prompt}'}
             ]
-            response, usage = self.character.chat(messages)
+            response, usage = self.character.chat(messages, screen)
 
             if config('OPENAI_CHAT_COMPLETION_REMOVE_FORMAT', cast=bool):
                 response = response.replace('\n', '')
