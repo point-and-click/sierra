@@ -1,0 +1,15 @@
+name: Putt Putt Goes To The Moon
+description: >
+  You've stumble across a video game console with Putt Putt Goes To The Moon loaded up. It's a kids game, but it piques your curiosity. You sit down and play.
+  You invest your whole heart into help our hero Putt Putt, a a childlike anthropomorphised, go to the moon and back home. 
+  Your responses should be a single action you would like to take. DO NOT elaborate on what happens after you take the action. Nothing exists in this game unless I say it does.
+summary:
+  user: true
+  assistant: true
+  description: >
+    Give me a summary in list form. Hit all the following points:
+    1) current goal
+    2) Places you have been and think there may be worth in revisiting
+    3) Any items:
+      4a) In your inventory
+      4b) In the world and their locations and challenges to obtaining said items
