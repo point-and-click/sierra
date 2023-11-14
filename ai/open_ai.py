@@ -20,11 +20,16 @@ class MessageRole(Enum):
 
 class ChatGPT:
     @staticmethod
-    def chat(messages):
+    def chat(messages, chat_model_override=None):
         log.info('OpenAI: Chat completion requested.')
 
+        if chat_model_override is not None:
+            model = chat_model_override
+        else:
+            model = config('OPENAI_CHAT_COMPLETION_MODEL')
+
         try:
-            completion = openai.ChatCompletion.create(model=config('OPENAI_CHAT_COMPLETION_MODEL'),
+            completion = openai.ChatCompletion.create(model=model,
                                                       messages=messages,
                                                       max_tokens=config('OPENAI_CHAT_COMPLETION_MAX_TOKENS', cast=int))
 
@@ -55,7 +60,9 @@ class ChatGPT:
 
     @staticmethod
     def list_jobs():
-        response = openai.FineTune.list(limit=10)
+        # response = openai.FineTune.list(limit=10)
+        # print(response)
+        response = openai.FineTuningJob.retrieve("ftjob-0ItJPRcwxD2HSooNxcS08cEv")
         print(response)
 
 

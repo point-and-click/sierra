@@ -12,7 +12,7 @@ class AudioPlayer:
         self.file_bytes = file_bytes
 
     def __enter__(self):
-        self.file = open('temp/output.wav', 'wb')
+        self.file = open('temp/output.mp3', 'wb')
         self.file.write(self.file_bytes)
         self.file.seek(0)
         return self

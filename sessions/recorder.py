@@ -1,17 +1,18 @@
-
 import wave
 
 import pyaudio
+import pygame
 from decouple import config
 from pynput import keyboard
 
 from utils.logging import log
 
-RECORD_BINDING = keyboard.Key.ctrl_r
+RECORD_BINDING = 96  # NUM_0
 
 
 class Recorder:
-    def __init__(self):
+    def __init__(self, character_count):
+        self.character_count = character_count
         self.chunk = config('CHUNK', cast=int)
         self.sample_format = pyaudio.paInt16
         self.channels = config('CHANNELS', cast=int)
@@ -27,8 +28,17 @@ class Recorder:
 
         self.recording = False
         self.listener = None
+        self.press_sound = None
+        self.release_sound = None
+        self.character_number = None
 
     def record(self, filename):
+        if self.press_sound is None:
+            self.press_sound = pygame.mixer.Sound("beep_basic_high.mp3")
+            self.press_sound.set_volume(0.1)
+        if self.release_sound is None:
+            self.release_sound = pygame.mixer.Sound("beep_basic.mp3")
+            self.release_sound.set_volume(0.1)
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
 
@@ -52,13 +62,24 @@ class Recorder:
 
         self.frames = []
 
+        return self.character_number
+
     def on_press(self, key):
-        if key == RECORD_BINDING and not self.recording:
+        if not hasattr(key, 'vk'):
+            return
+
+        if RECORD_BINDING <= key.vk < RECORD_BINDING + self.character_count and not self.recording:
+            self.character_number = key.vk - RECORD_BINDING
+            pygame.mixer.Sound.play(self.press_sound)
             self.recording = True
             log.info('Input: Recording Started')
 
     def on_release(self, key):
-        if key == RECORD_BINDING and self.recording:
+        if not hasattr(key, 'vk') or self.character_number is None:
+            return
+
+        if key.vk == RECORD_BINDING + self.character_number and self.recording:
+            pygame.mixer.Sound.play(self.release_sound)
             self.recording = False
             log.info('Input: Recording Stopped')
             self.listener.stop()

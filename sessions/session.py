@@ -12,18 +12,23 @@ from sessions.history import History
 from sessions.recorder import Recorder, RECORD_BINDING
 from utils.logging import log
 from utils.logging._format import nl, tab
+from utils.word_wrap import WordWrap
 
 ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
 DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
 
 
 class Session:
-    def __init__(self, character_name, task_name):
-        self.recorder = Recorder()
+    def __init__(self, character_names, task_name):
 
         self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-        self.character = characters.get(character_name)
+        self.characters = []
+        for character_name in character_names.split(','):
+            self.characters.append(characters.get(character_name))
+
+        self.recorder = Recorder(len(self.characters))
+
         self.task = tasks.get(task_name)
 
         self.history = []
@@ -44,7 +49,7 @@ class Session:
         state = self.__dict__.copy()
         del state['recorder']
         del state['listener']
-        del state['character']
+        del state['characters']
         return state
 
     # The way this works is maddening.
@@ -67,18 +72,24 @@ class Session:
         pygame.display.set_caption("Sierra")
         while True:
             log.info(f'\nInput: Press {str(RECORD_BINDING)} to record.')
-            self.recorder.record('temp/input.wav')
+            character_number = self.recorder.record('temp/input.wav')
 
             prompt = Whisper.transcribe('temp/input.wav')
 
             log.info(f'Whisper: Transcribed: {prompt}')
+            with open('obs_ai.txt', "w") as f:
+                f.write("")
+            with open('obs_player.txt', "w") as f:
+                f.write(WordWrap.word_wrap(prompt, 75))
 
             messages = [
-                {"role": MessageRole.SYSTEM.value, "content": f'{self.task.description} '},
+                {"role": MessageRole.SYSTEM.value, "content": f'You will be playing the part of multiple characters. In each prompt you will be given specific rules to the character you will be playing. Respond as the character described.'},
+                {"role": MessageRole.USER.value,
+                 "content": f'{self.task.description} {self.characters[character_number].motivation} {self.characters[character_number].rules} {prompt}'},
                 *[{"role": entry.role, "content": entry.content} for entry in self.history],
-                {"role": MessageRole.USER.value, "content": f'{self.character.motivation} {self.character.rules} {prompt}'}
+                {"role": MessageRole.USER.value, "content": f'{prompt}'}
             ]
-            response, usage = self.character.chat(messages, screen)
+            response, usage = self.characters[character_number].chat(messages, screen)
 
             if config('OPENAI_CHAT_COMPLETION_REMOVE_FORMAT', cast=bool):
                 response = response.replace('\n', '')
