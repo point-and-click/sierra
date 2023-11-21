@@ -1,3 +1,4 @@
+import asyncio
 from glob import glob
 
 import elevenlabs
@@ -19,4 +20,7 @@ if __name__ == '__main__':
                 index = int(input('Load save: '))
                 session.load(saves[index])
 
-        session.begin()
+        loop = asyncio.new_event_loop()
+        loop.create_task(session.begin())
+        asyncio.ensure_future(session.begin())
+        loop.run_forever()

@@ -1,4 +1,6 @@
+import asyncio
 import pickle
+import queue
 from datetime import datetime
 
 import pygame
@@ -6,10 +8,11 @@ from decouple import config
 from pynput import keyboard
 
 from ai import open_ai
-from ai.open_ai import Whisper, ChatGPT, MessageRole
+from ai.open_ai import ChatGPT, MessageRole
 from play import characters, tasks
 from sessions.history import History
-from sessions.recorder import Recorder, RECORD_BINDING
+from sessions.recorder import Recorder
+from extensions.twitch_input import TwitchNotification
 from utils.logging import log
 from utils.logging._format import nl, tab
 from utils.word_wrap import WordWrap
@@ -27,11 +30,10 @@ class Session:
         for character_name in character_names.split(','):
             self.characters.append(characters.get(character_name))
 
-        self.recorder = Recorder(len(self.characters))
-
         self.task = tasks.get(task_name)
 
         self.history = []
+        self.input_queue = queue.Queue()
 
         self.response_word_count = 0
 
@@ -47,9 +49,9 @@ class Session:
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        del state['recorder']
         del state['listener']
         del state['characters']
+        del state['input_queue']
         return state
 
     # The way this works is maddening.
@@ -64,19 +66,27 @@ class Session:
             ]
         )
 
-    def begin(self):
+    async def begin(self):
         pygame.init()
         screen = pygame.display.set_mode((275, 338))
         screen.fill((0, 255, 0))
         pygame.display.update()
         pygame.display.set_caption("Sierra")
+
+        twitch_input = TwitchNotification(self.input_queue)
+        recorder = Recorder(len(self.characters), self.input_queue)
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(twitch_input.run(), loop=loop)
+        asyncio.run_coroutine_threadsafe(loop=loop, coro=recorder.run())
+        await asyncio.sleep(1)
+
+        character_number = 0
         while True:
-            log.info(f'\nInput: Press {str(RECORD_BINDING)} to record.')
-            character_number = self.recorder.record('temp/input.wav')
+            while self.input_queue.empty():
+                await asyncio.sleep(0.1)
+                # character_number = self.recorder.record('temp/input.wav')
 
-            prompt = Whisper.transcribe('temp/input.wav')
-
-            log.info(f'Whisper: Transcribed: {prompt}')
+            prompt = self.input_queue.get()
             with open('obs_ai.txt', "w") as f:
                 f.write("")
             with open('obs_player.txt', "w") as f:
@@ -134,7 +144,7 @@ class Session:
                 pass
 
     def summarize(self):
-        self.accepted_summary = False
+        self.accepted_summary = True
         self.declined_summary = False
 
         messages = [
@@ -149,9 +159,9 @@ class Session:
             self.listener = keyboard.Listener(on_press=self.on_press)
             self.listener.start()
 
-            log.info('Waiting to accept summary.')
-            while not self.accepted_summary and not self.declined_summary:
-                pass
+            # log.info('Waiting to accept summary.')
+            # while not self.accepted_summary and not self.declined_summary:
+            #     pass
 
             if self.declined_summary:
                 log.info('Summary declined.')

@@ -1,3 +1,5 @@
+import asyncio
+import time
 import wave
 
 import pyaudio
@@ -5,13 +7,14 @@ import pygame
 from decouple import config
 from pynput import keyboard
 
+from ai.open_ai import Whisper
 from utils.logging import log
 
 RECORD_BINDING = 96  # NUM_0
 
 
 class Recorder:
-    def __init__(self, character_count):
+    def __init__(self, character_count, input_queue):
         self.character_count = character_count
         self.chunk = config('CHUNK', cast=int)
         self.sample_format = pyaudio.paInt16
@@ -25,6 +28,7 @@ class Recorder:
                                           frames_per_buffer=self.chunk,
                                           input=True)
         self.frames = []
+        self.input_queue = input_queue
 
         self.recording = False
         self.listener = None
@@ -32,7 +36,7 @@ class Recorder:
         self.release_sound = None
         self.character_number = None
 
-    def record(self, filename):
+    async def record(self, filename):
         if self.press_sound is None:
             self.press_sound = pygame.mixer.Sound("beep_basic_high.mp3")
             self.press_sound.set_volume(0.1)
@@ -45,7 +49,7 @@ class Recorder:
         self.stream.start_stream()
 
         while not self.recording:
-            pass
+            await asyncio.sleep(0.1)
 
         while self.recording:
             data = self.stream.read(self.chunk, exception_on_overflow=False)
@@ -61,8 +65,6 @@ class Recorder:
         wf.close()
 
         self.frames = []
-
-        return self.character_number
 
     def on_press(self, key):
         if not hasattr(key, 'vk'):
@@ -83,3 +85,11 @@ class Recorder:
             self.recording = False
             log.info('Input: Recording Stopped')
             self.listener.stop()
+
+    async def run(self):
+        while True:
+            log.info(f'\nInput: Press {str(RECORD_BINDING)} to record.')
+            await self.record('temp/input.wav')
+            prompt = Whisper.transcribe('temp/input.wav')
+            self.input_queue.put(prompt)
+            log.info(f'Whisper: Transcribed: {prompt}')
