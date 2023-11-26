@@ -67,4 +67,13 @@ class PlayHt:
         if response.status_code == 200:
             return response.content
         else:
-            raise Exception("Womp womp.")
+            raise CustomException("Womp womp.", None)
+
+
+class CustomException(Exception):
+    pass
+
+    def __init__(self, message, errors):
+        super().__init__(message)
+
+        self.errors = errors

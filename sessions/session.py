@@ -9,6 +9,7 @@ from pynput import keyboard
 
 from ai import open_ai
 from ai.open_ai import ChatGPT, MessageRole
+from async_input import AsyncInput
 from play import characters, tasks
 from sessions.history import History
 from sessions.recorder import Recorder
@@ -76,9 +77,11 @@ class Session:
         twitch_input = TwitchNotification(self.input_queue)
         recorder = Recorder(len(self.characters), self.input_queue)
         loop = asyncio.get_event_loop()
+
+        # async_input = AsyncInput(self.input_queue)
+        # asyncio.run_coroutine_threadsafe(async_input.put_in_queue(), loop=loop)
         asyncio.run_coroutine_threadsafe(twitch_input.run(), loop=loop)
-        asyncio.run_coroutine_threadsafe(loop=loop, coro=recorder.run())
-        await asyncio.sleep(1)
+        asyncio.run_coroutine_threadsafe(recorder.run(), loop=loop)
 
         character_number = 0
         while True:
@@ -140,11 +143,10 @@ class Session:
             )
 
         if history_word_count > config("OPENAI_CHAT_COMPLETION_MAX_WORD_COUNT", cast=int):
-            while not self.summarize():
-                pass
+            self.summarize()
 
     def summarize(self):
-        self.accepted_summary = True
+        self.accepted_summary = False
         self.declined_summary = False
 
         messages = [
@@ -159,19 +161,19 @@ class Session:
             self.listener = keyboard.Listener(on_press=self.on_press)
             self.listener.start()
 
-            # log.info('Waiting to accept summary.')
-            # while not self.accepted_summary and not self.declined_summary:
-            #     pass
+            log.info('Waiting to accept summary.')
+            while not self.accepted_summary and not self.declined_summary:
+                pass
+
+            self.listener.stop()
 
             if self.declined_summary:
                 log.info('Summary declined.')
-                self.listener.stop()
                 return False
 
         self.history = ([History(MessageRole.ASSISTANT.value, summary)]
                         + self.history[-config('PRESERVE_HISTORY_LINES', cast=int):])
 
-        self.listener.stop()
         log.info('Summary accepted.')
         return True
 

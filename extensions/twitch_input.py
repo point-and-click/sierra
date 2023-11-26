@@ -41,5 +41,3 @@ class TwitchNotification:
 
         await eventsub.listen_channel_cheer(user.id, self.on_cheer)
         await eventsub.listen_channel_points_custom_reward_redemption_add(user.id, self.on_channel_point_redemption)
-
-        await asyncio.sleep(0)

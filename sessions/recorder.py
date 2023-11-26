@@ -56,6 +56,7 @@ class Recorder:
             self.frames.append(data)
 
         self.stream.stop_stream()
+        self.listener.stop()
 
         wf = wave.open(filename, 'wb')
         wf.setnchannels(self.channels)
@@ -67,24 +68,34 @@ class Recorder:
         self.frames = []
 
     def on_press(self, key):
-        if not hasattr(key, 'vk'):
-            return
+        if isinstance(key, keyboard.Key):
+            number = key.value.vk
+        elif isinstance(key, keyboard.KeyCode):
+            number = key.vk
+        else:
+            number = 0
 
-        if RECORD_BINDING <= key.vk < RECORD_BINDING + self.character_count and not self.recording:
-            self.character_number = key.vk - RECORD_BINDING
+        if RECORD_BINDING <= number < RECORD_BINDING + self.character_count and not self.recording:
+            self.character_number = number - RECORD_BINDING
             pygame.mixer.Sound.play(self.press_sound)
             self.recording = True
             log.info('Input: Recording Started')
 
     def on_release(self, key):
-        if not hasattr(key, 'vk') or self.character_number is None:
+        if self.character_number is None:
             return
 
-        if key.vk == RECORD_BINDING + self.character_number and self.recording:
+        if isinstance(key, keyboard.Key):
+            number = key.value.vk
+        elif isinstance(key, keyboard.KeyCode):
+            number = key.vk
+        else:
+            number = 0
+
+        if number == RECORD_BINDING + self.character_number and self.recording:
             pygame.mixer.Sound.play(self.release_sound)
             self.recording = False
             log.info('Input: Recording Stopped')
-            self.listener.stop()
 
     async def run(self):
         while True:

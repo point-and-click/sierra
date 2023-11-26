@@ -22,5 +22,4 @@ if __name__ == '__main__':
 
         loop = asyncio.new_event_loop()
         loop.create_task(session.begin())
-        asyncio.ensure_future(session.begin())
         loop.run_forever()
