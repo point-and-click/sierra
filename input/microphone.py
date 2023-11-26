@@ -11,13 +11,13 @@ from ai.audio.open_ai import Whisper
 from utils.logging import log
 from assets.audio.notifications import NOTIFY_RELEASE, NOTIFY_PRESS
 
-RECORD_BINDING = 96  # NUM_0
+assert (len(config('VK_BINDS').split(','))
+        == len(config('CHARACTERS').split(','))), 'VK_BINDS and CHARACTERS must be the same length'
+BIND_MAP = dict(zip(config('VK_BINDS').split(','), config('CHARACTERS').split(',')))  # NUM_0
 
 
-class Recorder:
+class Input:
     def __init__(self):
-        pygame.init()
-        self.character_count = len(config('CHARACTERS').split(','))
         self.chunk = config('CHUNK', cast=int)
         self.sample_format = pyaudio.paInt16
         self.channels = config('CHANNELS', cast=int)
@@ -33,8 +33,6 @@ class Recorder:
 
         self.recording = False
         self.listener = None
-
-        self.character_number = None
 
     def record(self, filename):
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
@@ -52,33 +50,29 @@ class Recorder:
         self.stream.stop_stream()
         self.listener.stop()
 
-        wf = wave.open(filename, 'wb')
-        wf.setnchannels(self.channels)
-        wf.setsampwidth(self.interface.get_sample_size(self.sample_format))
-        wf.setframerate(self.fs)
-        wf.writeframes(b''.join(self.frames))
-        wf.close()
+        with wave.open(filename, 'wb') as wf:
+            wf.setnchannels(self.channels)
+            wf.setsampwidth(self.interface.get_sample_size(self.sample_format))
+            wf.setframerate(self.fs)
+            wf.writeframes(b''.join(self.frames))
 
         self.frames = []
 
     def on_press(self, key):
-        if isinstance(key, keyboard.Key):
-            number = key.value.vk
-        elif isinstance(key, keyboard.KeyCode):
-            number = key.vk
-        else:
-            number = 0
+        match type(key):
+            case keyboard.Key:
+                number = key.value.vk
+            case keyboard.KeyCode:
+                number = key.vk
+            case _:
+                number = 0
 
-        if RECORD_BINDING <= number < RECORD_BINDING + self.character_count and not self.recording:
-            self.character_number = number - RECORD_BINDING
+        if number in BIND_MAP.keys():
             pygame.mixer.Sound.play(NOTIFY_PRESS)
             self.recording = True
             log.info('input.py: Recording Started')
 
     def on_release(self, key):
-        if self.character_number is None:
-            return
-
         if isinstance(key, keyboard.Key):
             number = key.value.vk
         elif isinstance(key, keyboard.KeyCode):
@@ -86,21 +80,28 @@ class Recorder:
         else:
             number = 0
 
-        if number == RECORD_BINDING + self.character_number and self.recording:
+        if number in BIND_MAP.keys() and self.recording:
             pygame.mixer.Sound.play(NOTIFY_RELEASE)
             self.recording = False
             log.info('input.py: Recording Stopped')
 
     def run(self):
         while True:
-            log.info(f'\ninput.py: Press {str(RECORD_BINDING)} to record.')
+            log.info(f'\ninput.py: Press any VK_BIND to record.')
             self.record('temp/input.wav')
             prompt = Whisper.transcribe('temp/input.wav')
 
-            requests.post("http://localhost:8008/", json={"message": prompt, "character": "Other Poop"})
+            requests.post(
+                "http://localhost:8008/",
+                json={
+                    "message": prompt,
+                    "character": "Other Poop"
+                }
+            )
             log.info(f'Whisper: Transcribed: {prompt}')
 
 
 if __name__ == "__main__":
-    recorder = Recorder()
+    pygame.init()
+    recorder = Input()
     recorder.run()

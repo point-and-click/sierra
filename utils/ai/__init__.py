@@ -7,11 +7,12 @@ def fine_tune(json_file_path):
         purpose='fine-tune'
     )
 
-    job = openai.FineTuningJob.create(training_file=file.openai_id, model="gpt-3.5-turbo")
+    job = openai.FineTune.create(training_file=file.openai_id, model="gpt-3.5-turbo")
 
     print(job)
 
 
 def list_jobs(job):
-    response = openai.FineTuningJob.retrieve(job)
+
+    response = openai.FineTune.retrieve(job)
     print(response)

@@ -26,7 +26,7 @@ class PlayHt:
 
         payload = {
             "quality": config('PLAY_HT_QUALITY'),
-            "output_format": "mp3",
+            "output_format": "wav",
             "speed": 1,
             "sample_rate": config('SAMPLE_RATE', cast=int),
             "voice": voice,

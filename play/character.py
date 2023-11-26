@@ -9,7 +9,7 @@ from ai.audio.play_ht import PlayHt
 from pynput import keyboard
 
 from play.animation import Animation
-from utils.audio_player import AudioPlayer
+from play.audio import Audio
 from utils.logging import log
 from assets.audio.notifications import NOTIFY_SPEECH
 from utils.text import word_wrap
@@ -55,10 +55,10 @@ class Character:
         time.sleep(0.5)
         with open('obs_ai.txt', "w") as f:
             f.write(word_wrap(text, 75))
-        with AudioPlayer(audio_file) as audio_player:
+        with Audio('temp/output.wav') as audio:
             while self.paused:
                 time.sleep(0.5)
-            for amplitude in audio_player.play_audio_chunk():
+            for amplitude in audio.play_chunk():
                 while self.paused:
                     time.sleep(1)
                 self.animation.animate_frame(amplitude, screen)
