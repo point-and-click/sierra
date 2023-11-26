@@ -31,7 +31,9 @@ class Input:
                                           input=True)
         self.frames = []
 
-        self.recording = False
+        self.recording = None
+        self.meta = {}
+
         self.listener = None
 
     def record(self, filename):
@@ -57,6 +59,7 @@ class Input:
             wf.writeframes(b''.join(self.frames))
 
         self.frames = []
+        return self.meta
 
     def on_press(self, key):
         match type(key):
@@ -70,6 +73,7 @@ class Input:
         if number in BIND_MAP.keys():
             pygame.mixer.Sound.play(NOTIFY_PRESS)
             self.recording = True
+            self.meta["character"] = BIND_MAP[number]
             log.info('input.py: Recording Started')
 
     def on_release(self, key):
@@ -88,14 +92,14 @@ class Input:
     def run(self):
         while True:
             log.info(f'\ninput.py: Press any VK_BIND to record.')
-            self.record('temp/input.wav')
+            meta = self.record('temp/input.wav')
             prompt = Whisper.transcribe('temp/input.wav')
 
             requests.post(
                 "http://localhost:8008/",
                 json={
                     "message": prompt,
-                    "character": "Other Poop"
+                    "character": meta.get('character', config('CHARACTERS').split(',')[0])
                 }
             )
             log.info(f'Whisper: Transcribed: {prompt}')
