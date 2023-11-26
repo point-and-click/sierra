@@ -8,7 +8,7 @@ import elevenlabs
 import openai
 from decouple import config
 
-from input import app
+from input.api import app
 from sessions.session import Session
 from utils.logging import log
 

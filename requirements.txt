@@ -1,11 +1,15 @@
-elevenlabs
+elevenlabs~=0.2.24
 flake8
-openai
+openai~=0.27.8
 openai-whisper
-pyaudio
-pynput
+pyaudio~=0.2.13
+pynput~=1.7.6
 python-decouple
-pyyaml
-flask
+pyyaml~=6.0.1
+flask~=3.0.0
 
-audioread
+pygame~=2.5.2
+requests~=2.31.0
+twitchAPI~=4.1.0
+numpy~=1.24.4
+audioread~=3.0.0

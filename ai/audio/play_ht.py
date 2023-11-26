@@ -1,14 +1,7 @@
-import json
-
-import audioread
-import pyaudio
 import requests
-import pygame
-
 from decouple import config
 
 from utils.logging import log
-from utils.word_wrap import WordWrap
 
 
 class PlayHt:
@@ -48,17 +41,6 @@ class PlayHt:
         }
 
         response = requests.post(url, json=payload, headers=headers)
-
-        # audio_stream_url = json.loads(str(response.text))['href']
-
-        # session = requests.Session()
-        #
-        # headers = {
-        #     "AUTHORIZATION": f'Bearer {config("PLAY_HT_API_KEY")}',
-        #     "X-USER-ID": config("PLAY_HT_USER_ID")
-        # }
-        #
-        # response = session.get(audio_stream_url, headers=headers, stream=True)
 
         while response.status_code == 504:
             log.info("Play.HT Gateway timeout. Retrying...")

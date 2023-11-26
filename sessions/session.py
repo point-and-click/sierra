@@ -7,14 +7,13 @@ import pygame
 from decouple import config
 from pynput import keyboard
 
-from ai import open_ai
-from ai.open_ai import ChatGPT, MessageRole
+from ai import Usage
+from ai.text.open_ai import ChatGPT, MessageRole
 from play import characters, tasks
 from sessions.history import History
-from input.twitch_input import TwitchNotification
 from utils.logging import log
-from utils.logging._format import nl, tab
-from utils.word_wrap import WordWrap
+from utils.logging.format import nl, tab
+from utils.text import word_wrap
 
 ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
 DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
@@ -29,7 +28,6 @@ class Session:
         return cls._instance
 
     def __init__(self):
-
         self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.characters = []
         for character_name in config('CHARACTERS').split(','):
@@ -40,11 +38,10 @@ class Session:
         self.history = []
         self.input_queue = queue.Queue()
 
-        self.response_word_count = 0
-
         self.listener = None
-        self.accepted_summary = False
-        self.declined_summary = False
+        self.accepted_summary = None
+
+        self.usage = Usage()
 
     def __enter__(self):
         return self
@@ -88,10 +85,11 @@ class Session:
             with open('obs_ai.txt', "w") as f:
                 f.write("")
             with open('obs_player.txt', "w") as f:
-                f.write(WordWrap.word_wrap(prompt, 75))
+                f.write(word_wrap(prompt, 75))
 
             messages = [
-                {"role": MessageRole.SYSTEM.value, "content": f'You will be playing the part of multiple characters. In each prompt you will be given specific rules to the character you will be playing. Respond as the character described.'},
+                {"role": MessageRole.SYSTEM.value,
+                 "content": f'You will be playing the part of multiple characters. In each prompt you will be given specific rules to the character you will be playing. Respond as the character described.'},
                 {"role": MessageRole.USER.value,
                  "content": f'{self.task.description} {self.characters[character_number].motivation} {self.characters[character_number].rules} {prompt}'},
                 *[{"role": entry.role, "content": entry.content} for entry in self.history],
@@ -102,47 +100,42 @@ class Session:
             if config('OPENAI_CHAT_COMPLETION_REMOVE_FORMAT', cast=bool):
                 response = response.replace('\n', '')
 
-            open_ai.TOKENS += usage.get("total_tokens")
-
-            self.response_word_count += len(response.split())
+            self.usage.prompt_tokens = usage.get("prompt_tokens")
+            self.usage.response_tokens = usage.get("completion_tokens")
+            self.usage.prompt_words = len(prompt.split())
+            self.usage.response_words = len(response.split())
+            self.usage.prompt_characters = len(prompt)
+            self.usage.response_characters = len(response)
 
             if self.task.summary.user:
                 self.history.append(History(MessageRole.USER.value, prompt))
             if self.task.summary.assistant:
                 self.history.append(History(MessageRole.ASSISTANT.value, response))
 
-            self.assess(usage)
+            self.assess()
             self.save()
 
-    def assess(self, usage):
-        history_word_count = sum([len(entry.content.split()) for entry in self.history])
-
+    def assess(self):
         if config('DEBUG_USAGE', cast=bool):
             log.info(
-                f'Usage: OpenAI'
+                f'Usage: Text Completion'
                 f'\n\tPrompt: '
-                f'{usage.get("prompt_tokens")} tokens'
+                f'{self.usage.prompt_words} words | {self.usage.prompt_tokens} tokens'
                 f'\n\tCompletion: '
-                f'{usage.get("completion_tokens")} tokens'
-                f'\n\tTotal: '
-                f'{usage.get("total_tokens")} tokens'
-                f'\n\tSession: '
-                f'{open_ai.TOKENS} tokens'
+                f'{self.usage.response_words} words | {self.usage.response_tokens} tokens'
             )
             log.info(
-                f'Usage: ElevenLabs'
-                f'\n\tSummary: '
-                f'{history_word_count} words / {config("OPENAI_CHAT_COMPLETION_MAX_WORD_COUNT", cast=int)} words'
-                f'\n\tSession: '
-                f'{self.response_word_count} words'
+                f'Usage: Speech Synthesis'
+                f'\n\tSynthesis: '
+                f'{self.usage.response_characters} words'
             )
 
-        if history_word_count > config("OPENAI_CHAT_COMPLETION_MAX_WORD_COUNT", cast=int):
+        if (sum([len(entry.content.split()) for entry in self.history])
+                > config("OPENAI_CHAT_COMPLETION_MAX_WORD_COUNT", cast=int)):
             self.summarize()
 
     def summarize(self):
-        self.accepted_summary = False
-        self.declined_summary = False
+        self.accepted_summary = None
 
         messages = [
             *[{"role": entry.role, "content": entry.content} for entry in self.history],
@@ -157,20 +150,19 @@ class Session:
             self.listener.start()
 
             log.info('Waiting to accept summary.')
-            while not self.accepted_summary and not self.declined_summary:
-                pass
+            while self.accepted_summary is None:
+                continue
 
             self.listener.stop()
 
-            if self.declined_summary:
-                log.info('Summary declined.')
-                return False
+            if self.accepted_summary:
+                log.info(f'OpenAI: Summary: Declined')
+                return
+            else:
+                log.info(f'OpenAI: Summary: Accepted')
 
-        self.history = ([History(MessageRole.ASSISTANT.value, summary)]
-                        + self.history[-config('PRESERVE_HISTORY_LINES', cast=int):])
-
-        log.info('Summary accepted.')
-        return True
+        self.history = [History(MessageRole.ASSISTANT.value, summary)].extend(
+            self.history[-config('PRESERVE_HISTORY_LINES', cast=int):])
 
     def save(self):
         pickle.dump(self, open(f'saves/{self.name}.sierra', 'wb'))
@@ -185,4 +177,4 @@ class Session:
         if key == ACCEPT_SUMMARY_BINDING:
             self.accepted_summary = True
         elif key == DECLINE_SUMMARY_BINDING:
-            self.declined_summary = True
+            self.accepted_summary = False

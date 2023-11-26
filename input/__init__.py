@@ -1,13 +1,4 @@
-from flask import Flask, request
-from ai.input import AiInput
-
-from sessions.session import Session
-
-app = Flask("input")
-
-
-@app.route("/", methods=["POST"])
-def ai_input():
-    session = Session()
-    session.input_queue.put(AiInput(request.json))
-    return "Good job!", 200
+class AiInput:
+    def __init__(self, json):
+        self.character = json.get("character", None)
+        self.message = json.get("message", None)
