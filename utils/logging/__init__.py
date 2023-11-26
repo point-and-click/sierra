@@ -16,8 +16,8 @@ replacements = {
     'Usage': f'{_format.color(palette.material.pink)}Usage{_format.reset()}',
     '[0-9]+ tokens': f'{_format.color(palette.material.purple)}\\g<0>{_format.reset()}',
     '[0-9]+ words': f'{_format.color(palette.material.purple)}\\g<0>{_format.reset()}',
-    # Input
-    'Input': f'{_format.color(palette.material.orange)}Input{_format.reset()}',
+    # input.py
+    'input.py': f'{_format.color(palette.material.orange)}input.py{_format.reset()}',
     'Recording': f'{_format.color(palette.material.red)}Recording{_format.reset()}',
     # Characters
     '\(([^\)]+?)\)': f'{_format.color(palette.material.blue)}(\\g<1>){_format.reset()}',

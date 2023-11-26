@@ -9,11 +9,9 @@ from pynput import keyboard
 
 from ai import open_ai
 from ai.open_ai import ChatGPT, MessageRole
-from async_input import AsyncInput
 from play import characters, tasks
 from sessions.history import History
-from sessions.recorder import Recorder
-from extensions.twitch_input import TwitchNotification
+from input.twitch_input import TwitchNotification
 from utils.logging import log
 from utils.logging._format import nl, tab
 from utils.word_wrap import WordWrap
@@ -23,15 +21,21 @@ DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
 
 
 class Session:
-    def __init__(self, character_names, task_name):
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self):
 
         self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
         self.characters = []
-        for character_name in character_names.split(','):
+        for character_name in config('CHARACTERS').split(','):
             self.characters.append(characters.get(character_name))
 
-        self.task = tasks.get(task_name)
+        self.task = tasks.get(config('TASK'))
 
         self.history = []
         self.input_queue = queue.Queue()
@@ -74,22 +78,13 @@ class Session:
         pygame.display.update()
         pygame.display.set_caption("Sierra")
 
-        twitch_input = TwitchNotification(self.input_queue)
-        recorder = Recorder(len(self.characters), self.input_queue)
-        loop = asyncio.get_event_loop()
-
-        # async_input = AsyncInput(self.input_queue)
-        # asyncio.run_coroutine_threadsafe(async_input.put_in_queue(), loop=loop)
-        asyncio.run_coroutine_threadsafe(twitch_input.run(), loop=loop)
-        asyncio.run_coroutine_threadsafe(recorder.run(), loop=loop)
-
         character_number = 0
         while True:
             while self.input_queue.empty():
                 await asyncio.sleep(0.1)
                 # character_number = self.recorder.record('temp/input.wav')
 
-            prompt = self.input_queue.get()
+            prompt = self.input_queue.get().message
             with open('obs_ai.txt', "w") as f:
                 f.write("")
             with open('obs_player.txt', "w") as f:

@@ -1,9 +1,9 @@
-import asyncio
 import time
 import wave
 
 import pyaudio
 import pygame
+import requests
 from decouple import config
 from pynput import keyboard
 
@@ -14,8 +14,9 @@ RECORD_BINDING = 96  # NUM_0
 
 
 class Recorder:
-    def __init__(self, character_count, input_queue):
-        self.character_count = character_count
+    def __init__(self):
+        pygame.init()
+        self.character_count = len(config('CHARACTERS').split(','))
         self.chunk = config('CHUNK', cast=int)
         self.sample_format = pyaudio.paInt16
         self.channels = config('CHANNELS', cast=int)
@@ -28,7 +29,6 @@ class Recorder:
                                           frames_per_buffer=self.chunk,
                                           input=True)
         self.frames = []
-        self.input_queue = input_queue
 
         self.recording = False
         self.listener = None
@@ -36,7 +36,7 @@ class Recorder:
         self.release_sound = None
         self.character_number = None
 
-    async def record(self, filename):
+    def record(self, filename):
         if self.press_sound is None:
             self.press_sound = pygame.mixer.Sound("beep_basic_high.mp3")
             self.press_sound.set_volume(0.1)
@@ -49,7 +49,7 @@ class Recorder:
         self.stream.start_stream()
 
         while not self.recording:
-            await asyncio.sleep(0.1)
+            time.sleep(0.1)
 
         while self.recording:
             data = self.stream.read(self.chunk, exception_on_overflow=False)
@@ -79,7 +79,7 @@ class Recorder:
             self.character_number = number - RECORD_BINDING
             pygame.mixer.Sound.play(self.press_sound)
             self.recording = True
-            log.info('Input: Recording Started')
+            log.info('input.py: Recording Started')
 
     def on_release(self, key):
         if self.character_number is None:
@@ -95,12 +95,18 @@ class Recorder:
         if number == RECORD_BINDING + self.character_number and self.recording:
             pygame.mixer.Sound.play(self.release_sound)
             self.recording = False
-            log.info('Input: Recording Stopped')
+            log.info('input.py: Recording Stopped')
 
-    async def run(self):
+    def run(self):
         while True:
-            log.info(f'\nInput: Press {str(RECORD_BINDING)} to record.')
-            await self.record('temp/input.wav')
+            log.info(f'\ninput.py: Press {str(RECORD_BINDING)} to record.')
+            self.record('temp/input.wav')
             prompt = Whisper.transcribe('temp/input.wav')
-            self.input_queue.put(prompt)
+
+            requests.post("http://localhost:8008/", json={"message": prompt, "character": "Other Poop"})
             log.info(f'Whisper: Transcribed: {prompt}')
+
+
+if __name__ == "__main__":
+    recorder = Recorder()
+    recorder.run()
