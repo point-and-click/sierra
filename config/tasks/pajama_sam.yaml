@@ -1,8 +1,0 @@
-name: Pajama Sam in No Need to Hide When it's Dark Outside
-description: >
-  You are in your room and you are reading your comic book about the super hero, Pajama Man. You are wearing your pajamas, and you are holding your flashlight. Your mom just shut the lights off for the night.
-summary:
-  user: true
-  assistant: true
-  description: >
-    Summarize the content. Be as concise as possible. Place emphasis on your primary objective, current goal, and any items that you posses in your inventory, or in the world and their locations

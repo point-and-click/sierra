@@ -1,31 +1,44 @@
+import asyncio
 import pickle
+import queue
 from datetime import datetime
 
+import pygame
 from decouple import config
 from pynput import keyboard
 
 from ai import open_ai
-from ai.open_ai import Whisper, ChatGPT, MessageRole
+from ai.open_ai import ChatGPT, MessageRole
 from play import characters, tasks
 from sessions.history import History
-from sessions.recorder import Recorder, RECORD_BINDING
+from input.twitch_input import TwitchNotification
 from utils.logging import log
 from utils.logging._format import nl, tab
+from utils.word_wrap import WordWrap
 
 ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
 DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
 
 
 class Session:
-    def __init__(self, character_name, task_name):
-        self.recorder = Recorder()
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self):
 
         self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self.characters = []
+        for character_name in config('CHARACTERS').split(','):
+            self.characters.append(characters.get(character_name))
 
-        self.character = characters.get(character_name)
-        self.task = tasks.get(task_name)
+        self.task = tasks.get(config('TASK'))
 
         self.history = []
+        self.input_queue = queue.Queue()
 
         self.response_word_count = 0
 
@@ -41,8 +54,9 @@ class Session:
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        del state['recorder']
         del state['listener']
+        del state['characters']
+        del state['input_queue']
         return state
 
     # The way this works is maddening.
@@ -57,23 +71,33 @@ class Session:
             ]
         )
 
-    def begin(self):
+    async def begin(self):
+        pygame.init()
+        screen = pygame.display.set_mode((275, 338))
+        screen.fill((0, 255, 0))
+        pygame.display.update()
+        pygame.display.set_caption("Sierra")
+
+        character_number = 0
         while True:
-            log.info(f'\nInput: Press {str(RECORD_BINDING)} to record.')
-            self.recorder.record('temp/input.wav')
+            while self.input_queue.empty():
+                await asyncio.sleep(0.1)
+                # character_number = self.recorder.record('temp/input.wav')
 
-            prompt = Whisper.transcribe('temp/input.wav')
-
-            log.info(f'Whisper: Transcribed: {prompt}')
+            prompt = self.input_queue.get().message
+            with open('obs_ai.txt', "w") as f:
+                f.write("")
+            with open('obs_player.txt', "w") as f:
+                f.write(WordWrap.word_wrap(prompt, 75))
 
             messages = [
-                {"role": MessageRole.SYSTEM.value, "content": f'{self.character.motivation} '
-                                                              f'{self.task.description} '
-                                                              f'{self.character.format}'},
+                {"role": MessageRole.SYSTEM.value, "content": f'You will be playing the part of multiple characters. In each prompt you will be given specific rules to the character you will be playing. Respond as the character described.'},
+                {"role": MessageRole.USER.value,
+                 "content": f'{self.task.description} {self.characters[character_number].motivation} {self.characters[character_number].rules} {prompt}'},
                 *[{"role": entry.role, "content": entry.content} for entry in self.history],
-                {"role": MessageRole.USER.value, "content": prompt}
+                {"role": MessageRole.USER.value, "content": f'{prompt}'}
             ]
-            response, usage = self.character.chat(messages)
+            response, usage = self.characters[character_number].chat(messages, screen)
 
             if config('OPENAI_CHAT_COMPLETION_REMOVE_FORMAT', cast=bool):
                 response = response.replace('\n', '')
@@ -114,8 +138,7 @@ class Session:
             )
 
         if history_word_count > config("OPENAI_CHAT_COMPLETION_MAX_WORD_COUNT", cast=int):
-            while not self.summarize():
-                pass
+            self.summarize()
 
     def summarize(self):
         self.accepted_summary = False
@@ -137,15 +160,15 @@ class Session:
             while not self.accepted_summary and not self.declined_summary:
                 pass
 
+            self.listener.stop()
+
             if self.declined_summary:
                 log.info('Summary declined.')
-                self.listener.stop()
                 return False
 
         self.history = ([History(MessageRole.ASSISTANT.value, summary)]
                         + self.history[-config('PRESERVE_HISTORY_LINES', cast=int):])
 
-        self.listener.stop()
         log.info('Summary accepted.')
         return True
 
