@@ -101,7 +101,7 @@ class Recorder:
         while True:
             log.info(f'\ninput.py: Press {str(RECORD_BINDING)} to record.')
             self.record('temp/input.wav')
-            prompt = Whisper.transcribe('temp/input.wav')
+            prompt = Whisper.transcribe('temp/input.wav')["text"]
 
             requests.post("http://localhost:8008/", json={"message": prompt, "character": "Other Poop"})
             log.info(f'Whisper: Transcribed: {prompt}')

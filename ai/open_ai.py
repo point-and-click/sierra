@@ -59,10 +59,8 @@ class ChatGPT:
         print(job)
 
     @staticmethod
-    def list_jobs():
-        # response = openai.FineTune.list(limit=10)
-        # print(response)
-        response = openai.FineTuningJob.retrieve("ftjob-0ItJPRcwxD2HSooNxcS08cEv")
+    def print_job_status(tuning_job_id):
+        response = openai.FineTuningJob.retrieve(tuning_job_id)
         print(response)
 
 
@@ -72,4 +70,4 @@ class Whisper:
         log.info('Whisper: Transcribing recorded audio.')
         model = whisper.load_model(config('OPENAI_WHISPER_MODEL'))
         result = model.transcribe(audio_file, fp16=False, word_timestamps=True)
-        return result["text"]
+        return result

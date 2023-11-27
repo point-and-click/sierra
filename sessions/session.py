@@ -1,6 +1,6 @@
-import asyncio
 import pickle
 import queue
+import time
 from datetime import datetime
 
 import pygame
@@ -22,6 +22,7 @@ DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
 
 class Session:
     _instance = None
+    _initialized = False
 
     def __new__(cls):
         if cls._instance is None:
@@ -29,22 +30,23 @@ class Session:
         return cls._instance
 
     def __init__(self):
+        if not self._initialized:
+            self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            self.characters = []
+            for character_name in config('CHARACTERS').split(','):
+                self.characters.append(characters.get(character_name))
 
-        self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        self.characters = []
-        for character_name in config('CHARACTERS').split(','):
-            self.characters.append(characters.get(character_name))
+            self.task = tasks.get(config('TASK'))
 
-        self.task = tasks.get(config('TASK'))
+            self.history = []
+            self.input_queue = queue.Queue()
 
-        self.history = []
-        self.input_queue = queue.Queue()
+            self.response_word_count = 0
 
-        self.response_word_count = 0
-
-        self.listener = None
-        self.accepted_summary = False
-        self.declined_summary = False
+            self.listener = None
+            self.accepted_summary = False
+            self.declined_summary = False
+            self._initialized = True
 
     def __enter__(self):
         return self
@@ -73,7 +75,7 @@ class Session:
 
     async def begin(self):
         pygame.init()
-        screen = pygame.display.set_mode((275, 338))
+        screen = pygame.display.set_mode((1920, 1080))
         screen.fill((0, 255, 0))
         pygame.display.update()
         pygame.display.set_caption("Sierra")
@@ -81,14 +83,10 @@ class Session:
         character_number = 0
         while True:
             while self.input_queue.empty():
-                await asyncio.sleep(0.1)
+                time.sleep(0.1)
                 # character_number = self.recorder.record('temp/input.wav')
 
             prompt = self.input_queue.get().message
-            with open('obs_ai.txt', "w") as f:
-                f.write("")
-            with open('obs_player.txt', "w") as f:
-                f.write(WordWrap.word_wrap(prompt, 75))
 
             messages = [
                 {"role": MessageRole.SYSTEM.value, "content": f'You will be playing the part of multiple characters. In each prompt you will be given specific rules to the character you will be playing. Respond as the character described.'},
