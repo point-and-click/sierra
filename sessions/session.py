@@ -1,6 +1,6 @@
-import asyncio
 import pickle
 import queue
+import time
 from datetime import datetime
 
 import pygame
@@ -9,15 +9,18 @@ from pynput import keyboard
 
 from ai import open_ai
 from ai.open_ai import ChatGPT, MessageRole
+from ai.output import AiOutput
 from play import characters, tasks
 from sessions.history import History
-from input.twitch_input import TwitchNotification
+from utils.audio_player import AudioPlayer
 from utils.logging import log
 from utils.logging._format import nl, tab
 from utils.word_wrap import WordWrap
 
 ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
 DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
+
+_initialized = None
 
 
 class Session:
@@ -26,25 +29,26 @@ class Session:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+            cls._initialized = True
         return cls._instance
 
     def __init__(self):
+        if not _initialized:
+            self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            self.characters = []
+            for character_name in config('CHARACTERS').split(','):
+                self.characters.append(characters.get(character_name))
 
-        self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        self.characters = []
-        for character_name in config('CHARACTERS').split(','):
-            self.characters.append(characters.get(character_name))
+            self.task = tasks.get(config('TASK'))
 
-        self.task = tasks.get(config('TASK'))
+            self.history = []
+            self.output_queue = queue.Queue()
 
-        self.history = []
-        self.input_queue = queue.Queue()
+            self.response_word_count = 0
 
-        self.response_word_count = 0
-
-        self.listener = None
-        self.accepted_summary = False
-        self.declined_summary = False
+            self.listener = None
+            self.accepted_summary = False
+            self.declined_summary = False
 
     def __enter__(self):
         return self
@@ -80,39 +84,55 @@ class Session:
 
         character_number = 0
         while True:
-            while self.input_queue.empty():
-                await asyncio.sleep(0.1)
-                # character_number = self.recorder.record('temp/input.wav')
+            while self.output_queue.empty():
+                time.sleep(0.1)
 
-            prompt = self.input_queue.get().message
-            with open('obs_ai.txt', "w") as f:
-                f.write("")
-            with open('obs_player.txt', "w") as f:
-                f.write(WordWrap.word_wrap(prompt, 75))
+            output = self.output_queue.get()
 
-            messages = [
-                {"role": MessageRole.SYSTEM.value, "content": f'You will be playing the part of multiple characters. In each prompt you will be given specific rules to the character you will be playing. Respond as the character described.'},
-                {"role": MessageRole.USER.value,
-                 "content": f'{self.task.description} {self.characters[character_number].motivation} {self.characters[character_number].rules} {prompt}'},
-                *[{"role": entry.role, "content": entry.content} for entry in self.history],
-                {"role": MessageRole.USER.value, "content": f'{prompt}'}
-            ]
-            response, usage = self.characters[character_number].chat(messages, screen)
+            with AudioPlayer(output.audio_file) as audio_player:
+                while output.character.paused:
+                    time.sleep(0.5)
+                for amplitude in audio_player.play_audio_chunk():
+                    while output.character.paused:
+                        time.sleep(1)
+                    output.character.animate_frame(amplitude, screen)
+            screen.fill((0, 255, 0))
+            pygame.display.update()
 
-            if config('OPENAI_CHAT_COMPLETION_REMOVE_FORMAT', cast=bool):
-                response = response.replace('\n', '')
+    def get_chat_response(self, ai_input):
+        prompt = ai_input.message
+        with open('obs_ai.txt', "w") as f:
+            f.write("")
+        with open('obs_player.txt', "w") as f:
+            f.write(WordWrap.word_wrap(prompt, 75))
 
-            open_ai.TOKENS += usage.get("total_tokens")
+        messages = [
+            {"role": MessageRole.SYSTEM.value,
+             "content": f'You will be playing the part of multiple characters. In each prompt you will be given specific rules to the character you will be playing. Respond as the character described.'},
+            {"role": MessageRole.USER.value,
+             "content": f'{self.task.description} {self.characters[0].motivation} {self.characters[0].rules} {prompt}'},
+            *[{"role": entry.role, "content": entry.content} for entry in self.history],
+            {"role": MessageRole.USER.value, "content": f'{prompt}'}
+        ]
+        response, usage, audio_file = self.characters[0].chat(messages, self.screen)
 
-            self.response_word_count += len(response.split())
+        if audio_file is not None:
+            self.output_queue.put(AiOutput(self.characters[0], audio_file))
 
-            if self.task.summary.user:
-                self.history.append(History(MessageRole.USER.value, prompt))
-            if self.task.summary.assistant:
-                self.history.append(History(MessageRole.ASSISTANT.value, response))
+        if config('OPENAI_CHAT_COMPLETION_REMOVE_FORMAT', cast=bool):
+            response = response.replace('\n', '')
 
-            self.assess(usage)
-            self.save()
+        open_ai.TOKENS += usage.get("total_tokens")
+
+        self.response_word_count += len(response.split())
+
+        if self.task.summary.user:
+            self.history.append(History(MessageRole.USER.value, prompt))
+        if self.task.summary.assistant:
+            self.history.append(History(MessageRole.ASSISTANT.value, response))
+
+        self.assess(usage)
+        self.save()
 
     def assess(self, usage):
         history_word_count = sum([len(entry.content.split()) for entry in self.history])

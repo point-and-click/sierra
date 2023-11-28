@@ -34,12 +34,13 @@ class Character:
 
         log.info(f'Character ({self.name}): {response}')
 
+        audio_file = None
         if config('ENABLE_SPEECH', cast=bool):
-            self.speak(response, screen)
+            audio_file = self.speak(response, screen)
         else:
             log.info('Speech synthesis is disabled. Skipping.')
 
-        return response, usage
+        return response, usage, audio_file
 
     def speak(self, text, screen):
         self.listener = keyboard.Listener(on_press=self.on_press)
@@ -61,15 +62,7 @@ class Character:
         time.sleep(0.5)
         with open('obs_ai.txt', "w") as f:
             f.write(WordWrap.word_wrap(text, 75))
-        with AudioPlayer(audio_file) as audio_player:
-            while self.paused:
-                time.sleep(0.5)
-            for amplitude in audio_player.play_audio_chunk():
-                while self.paused:
-                    time.sleep(1)
-                self.animate_frame(amplitude, screen)
-        screen.fill((0, 255, 0))
-        pygame.display.update()
+        return audio_file
 
     def animate_frame(self, amplitude, screen):
         if self.image is None:
