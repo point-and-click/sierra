@@ -15,7 +15,6 @@ from sessions.history import History
 from utils.audio_player import AudioPlayer
 from utils.logging import log
 from utils.logging._format import nl, tab
-from utils.word_wrap import WordWrap
 
 ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
 DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
@@ -33,9 +32,6 @@ class Session:
     def __init__(self):
         if not self._initialized:
             self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            self.characters = []
-            for character_name in config('CHARACTERS').split(','):
-                self.characters.append(characters.get(character_name))
 
             self.task = tasks.get(config('TASK'))
 
@@ -58,7 +54,7 @@ class Session:
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        for key in ['listener', 'characters', 'output_queue', 'screen']:
+        for key in ['listener', 'output_queue', 'screen']:
             del state[key]
         return state
 
@@ -100,19 +96,19 @@ class Session:
 
     def get_chat_response(self, ai_input):
         prompt = ai_input.message
+        character = characters[ai_input.character]
 
         messages = [
-            {"role": MessageRole.SYSTEM.value,
-             "content": f'You will be playing the part of multiple characters. In each prompt you will be given specific rules to the character you will be playing. Respond as the character described.'},
+            {"role": MessageRole.SYSTEM.value, "content": f'You will be playing the part of multiple characters. In each prompt you will be given specific rules to the character you will be playing. Respond as the character described.'},
             {"role": MessageRole.USER.value,
-             "content": f'{self.task.description} {self.characters[0].motivation} {self.characters[0].rules} {prompt}'},
+             "content": f'{self.task.description} {character.motivation} {character.rules} {prompt}'},
             *[{"role": entry.role, "content": entry.content} for entry in self.history],
             {"role": MessageRole.USER.value, "content": f'{prompt}'}
         ]
-        response, usage, audio_file = self.characters[0].chat(messages, self.screen)
+        response, usage, audio_file = character.chat(messages, self.screen)
 
         if audio_file is not None:
-            self.output_queue.put(AiOutput(self.characters[0], audio_file))
+            self.output_queue.put(AiOutput(character.name, audio_file))
 
         if config('OPENAI_CHAT_COMPLETION_REMOVE_FORMAT', cast=bool):
             response = response.replace('\n', '')
