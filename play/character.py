@@ -27,29 +27,23 @@ class Character:
         self.prev_angle = 0
         self.image = None
         self.speak_sound = None
-        self.paused = False
         self.listener = None
         self.font = None
 
-    def chat(self, messages, screen):
+    def chat(self, messages):
         response, usage = ChatGPT.chat(messages, self.chat_model_override)
 
         log.info(f'Character ({self.name}): {response}')
 
         audio_file = None
         if config('ENABLE_SPEECH', cast=bool):
-            audio_file = self.speak(response, screen)
+            audio_file = self.synthesize_speech(response)
         else:
             log.info('Speech synthesis is disabled. Skipping.')
 
         return response, usage, audio_file
 
-    def speak(self, text, screen):
-        self.font = pygame.font.Font(config('SUBTITLE_FONT'), config('SUBTITLE_FONT_SIZE', cast=int))
-        self.font.set_bold(config('SUBTITLE_FONT_BOLD', cast=bool))
-
-        self.listener = keyboard.Listener(on_press=self.on_press)
-        self.listener.start()
+    def synthesize_speech(self, text):
         tts_service = config('TTS_SERVICE')
         log.info(f'{tts_service}: Speech synthesis requested')
         if tts_service == 'PlayHT':
@@ -61,24 +55,28 @@ class Character:
         if self.speak_sound is None:
             self.speak_sound = pygame.mixer.Sound("beep_basic_low.mp3")
             self.speak_sound.set_volume(0.1)
+
+        return audio_file
+
+    async def speak(self, ai_output, playback, screen):
+        self.font = pygame.font.Font(config('SUBTITLE_FONT'), config('SUBTITLE_FONT_SIZE', cast=int))
+        self.font.set_bold(config('SUBTITLE_FONT_BOLD', cast=bool))
+
         pygame.mixer.Sound.play(self.speak_sound)
 
-        with (AudioPlayer(audio_file) as audio_player):
-            response_text = Whisper.transcribe('temp/output.mp3')
-            text_renders = self.create_text_renders(response_text, 0)
+        with (AudioPlayer(ai_output) as audio_player):
+            text_renders = self.create_text_renders(ai_output.subtitles, 0)
 
-            while self.paused:
-                time.sleep(0.5)
             start_time = datetime.now()
             segment = 0
             for amplitude in audio_player.play_audio_chunk():
-                while self.paused:
+                while playback.paused:
                     time.sleep(1)
                 screen.fill((0, 255, 0))
                 self.animate_frame(amplitude, screen)
-                if len(response_text["segments"]) > segment + 1 and response_text["segments"][segment + 1]["words"][0]["end"] < (datetime.now() - start_time).total_seconds():
+                if len(ai_output.subtitles["segments"]) > segment + 1 and ai_output.subtitles["segments"][segment + 1]["words"][0]["end"] < (datetime.now() - start_time).total_seconds():
                     segment = segment + 1
-                    text_renders = self.create_text_renders(response_text, segment)
+                    text_renders = self.create_text_renders(ai_output.subtitles, segment)
                 text_offset = 0
                 for text_render in text_renders:
                     text_rect = text_render.get_rect(center=((1920 // 2), 975 + text_offset))
@@ -87,7 +85,6 @@ class Character:
                 pygame.display.update()
         screen.fill((0, 255, 0))
         pygame.display.update()
-        self.listener.stop()
 
     def animate_frame(self, amplitude, screen):
         if self.image is None:
@@ -109,13 +106,6 @@ class Character:
         pygame.event.get()
         screen.blit(rotated_image, rotated_rect)
 
-    def on_press(self, key):
-        if key == keyboard.Key.right and self.paused:
-            self.paused = False
-            log.info('Unpaused')
-        elif key == keyboard.Key.left and not self.paused:
-            self.paused = True
-            log.info('Paused')
 
     def create_text_renders(self, text, segment_num):
         segment_words = text["segments"][segment_num]["text"]

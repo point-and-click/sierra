@@ -24,7 +24,7 @@ class PlayHt:
 
         response = requests.get(url, headers=headers)
 
-        print(response.text)
+        log.info(response.text)
         return response.text
 
     @staticmethod

@@ -56,12 +56,12 @@ class ChatGPT:
 
         job = openai.FineTuningJob.create(training_file=file.openai_id, model="gpt-3.5-turbo")
 
-        print(job)
+        log.info(job)
 
     @staticmethod
     def list_jobs():
         response = openai.FineTune.list(limit=10)
-        print(response)
+        log.info(response)
 
 
 class Whisper:

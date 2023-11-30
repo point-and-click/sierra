@@ -1,7 +1,9 @@
+import asyncio
 import pickle
 import queue
 import time
 from datetime import datetime
+from threading import Thread
 
 import pygame
 from decouple import config
@@ -15,7 +17,6 @@ from sessions.history import History
 from utils.audio_player import AudioPlayer
 from utils.logging import log
 from utils.logging._format import nl, tab
-from utils.word_wrap import WordWrap
 
 ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
 DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
@@ -33,17 +34,16 @@ class Session:
     def __init__(self):
         if not self._initialized:
             self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            self.characters = []
-            for character_name in config('CHARACTERS').split(','):
-                self.characters.append(characters.get(character_name))
 
             self.task = tasks.get(config('TASK'))
 
             self.history = []
             self.output_queue = queue.Queue()
+            self.input_queue = queue.Queue()
 
             self.response_word_count = 0
 
+            self.playback = Playback()
             self.screen = None
             self.listener = None
             self.accepted_summary = False
@@ -58,7 +58,7 @@ class Session:
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        for key in ['listener', 'characters', 'output_queue', 'screen']:
+        for key in ['listener', 'input_queue', 'output_queue', 'screen']:
             del state[key]
         return state
 
@@ -74,45 +74,55 @@ class Session:
             ]
         )
 
-    async def begin(self):
+    async def process(self):
         pygame.init()
         self.screen = pygame.display.set_mode((1920, 1080))
         self.screen.fill((0, 255, 0))
         pygame.display.update()
         pygame.display.set_caption("Sierra")
 
-        character_number = 0
+        input_task = asyncio.create_task(self.process_input())
+        output_task = asyncio.create_task(self.process_output())
+
+        await asyncio.gather(input_task, output_task)
+
+    async def process_input(self):
         while True:
-            while self.output_queue.empty():
-                time.sleep(0.1)
+            if not self.input_queue.empty():
+                input_thread = Thread(target=dummy, args=(self, self.input_queue.get()))
+                input_thread.start()
+            else:
+                await asyncio.sleep(0.1)
 
-            output = self.output_queue.get()
+    async def process_output(self):
+        while True:
+            if not self.output_queue.empty():
+                await self.play_output(self.output_queue.get())
+            else:
+                await asyncio.sleep(0.1)
 
-            with AudioPlayer(output.audio_file) as audio_player:
-                while output.character.paused:
-                    time.sleep(0.5)
-                for amplitude in audio_player.play_audio_chunk():
-                    while output.character.paused:
-                        time.sleep(1)
-                    output.character.animate_frame(amplitude, self.screen)
-            self.screen.fill((0, 255, 0))
-            pygame.display.update()
+    async def play_output(self, output):
+        await output.character.speak(output, self.playback, self.screen)
+        self.screen.fill((0, 255, 0))
+        pygame.display.update()
 
     def get_chat_response(self, ai_input):
+        log.info(f"Getting chat response for: {ai_input.message}")
         prompt = ai_input.message
+        character = characters[ai_input.character]
 
         messages = [
             {"role": MessageRole.SYSTEM.value,
              "content": f'You will be playing the part of multiple characters. In each prompt you will be given specific rules to the character you will be playing. Respond as the character described.'},
             {"role": MessageRole.USER.value,
-             "content": f'{self.task.description} {self.characters[0].motivation} {self.characters[0].rules} {prompt}'},
+             "content": f'{self.task.description} {character.motivation} {character.rules} {prompt}'},
             *[{"role": entry.role, "content": entry.content} for entry in self.history],
             {"role": MessageRole.USER.value, "content": f'{prompt}'}
         ]
-        response, usage, audio_file = self.characters[0].chat(messages, self.screen)
+        response, usage, audio_file = character.chat(messages)
 
         if audio_file is not None:
-            self.output_queue.put(AiOutput(self.characters[0], audio_file))
+            self.output_queue.put(AiOutput(character, audio_file))
 
         if config('OPENAI_CHAT_COMPLETION_REMOVE_FORMAT', cast=bool):
             response = response.replace('\n', '')
@@ -201,3 +211,18 @@ class Session:
             self.accepted_summary = True
         elif key == DECLINE_SUMMARY_BINDING:
             self.declined_summary = True
+        elif key == keyboard.Key.right and self.playback.paused:
+            self.playback.paused = False
+            log.info('Unpaused')
+        elif key == keyboard.Key.left and not self.playback.paused:
+            self.playback.paused = True
+            log.info('Paused')
+
+
+class Playback:
+    def __init__(self):
+        self.paused = False
+
+
+def dummy(obj: Session, ai_input):
+    obj.get_chat_response(ai_input)
