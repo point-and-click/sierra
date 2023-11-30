@@ -20,20 +20,18 @@ from utils.word_wrap import WordWrap
 ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
 DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
 
-_initialized = None
-
 
 class Session:
     _instance = None
+    _initialized = False
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._initialized = True
         return cls._instance
 
     def __init__(self):
-        if not _initialized:
+        if not self._initialized:
             self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             self.characters = []
             for character_name in config('CHARACTERS').split(','):
@@ -46,9 +44,11 @@ class Session:
 
             self.response_word_count = 0
 
+            self.screen = None
             self.listener = None
             self.accepted_summary = False
             self.declined_summary = False
+            self._initialized = True
 
     def __enter__(self):
         return self
@@ -58,9 +58,8 @@ class Session:
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        del state['listener']
-        del state['characters']
-        del state['input_queue']
+        for key in ['listener', 'characters', 'output_queue', 'screen']:
+            del state[key]
         return state
 
     # The way this works is maddening.
@@ -77,8 +76,8 @@ class Session:
 
     async def begin(self):
         pygame.init()
-        screen = pygame.display.set_mode((275, 338))
-        screen.fill((0, 255, 0))
+        self.screen = pygame.display.set_mode((1920, 1080))
+        self.screen.fill((0, 255, 0))
         pygame.display.update()
         pygame.display.set_caption("Sierra")
 
@@ -95,8 +94,8 @@ class Session:
                 for amplitude in audio_player.play_audio_chunk():
                     while output.character.paused:
                         time.sleep(1)
-                    output.character.animate_frame(amplitude, screen)
-            screen.fill((0, 255, 0))
+                    output.character.animate_frame(amplitude, self.screen)
+            self.screen.fill((0, 255, 0))
             pygame.display.update()
 
     def get_chat_response(self, ai_input):
