@@ -9,5 +9,5 @@ app = Flask("input")
 @app.route("/", methods=["POST"])
 def ai_input():
     session = Session()
-    session.input_queue.put(AiInput(request.json))
+    session.get_chat_response(AiInput(request.json))
     return "Good job!", 200
