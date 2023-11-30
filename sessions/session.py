@@ -100,10 +100,6 @@ class Session:
 
     def get_chat_response(self, ai_input):
         prompt = ai_input.message
-        with open('obs_ai.txt', "w") as f:
-            f.write("")
-        with open('obs_player.txt', "w") as f:
-            f.write(WordWrap.word_wrap(prompt, 75))
 
         messages = [
             {"role": MessageRole.SYSTEM.value,
