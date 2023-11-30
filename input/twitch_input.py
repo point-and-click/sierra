@@ -12,6 +12,8 @@ from twitchAPI.object.eventsub import ChannelCheerEvent, ChannelPointsCustomRewa
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.type import AuthScope
 
+from utils.logging import log
+
 
 class TwitchNotification:
     APP_ID = config('TWITCH_APP_ID')
@@ -23,7 +25,7 @@ class TwitchNotification:
 
     async def on_cheer(self, data: ChannelCheerEvent):
         message = re.sub(r'\bcheer\d+\b', '', data.event.message, flags=re.IGNORECASE)
-        print(f'\n{data.event.user_name} cheered {data.event.bits}! : {message}')
+        log.info(f'\n{data.event.user_name} cheered {data.event.bits}! : {message}')
         character_name, message = self.get_character_name_from_emotes(message)
         requests.post("http://localhost:8008/",
                       json={"message": f' Viewer {data.event.user_name} says: {message}', "character": character_name})
@@ -31,7 +33,7 @@ class TwitchNotification:
     async def on_channel_point_redemption(self, data: ChannelPointsCustomRewardRedemptionAddEvent):
         # our event happend, lets do things with the data we got!
         message = f' Viewer {data.event.user_name} says: {data.event.user_input}'
-        print(message)
+        log.info(message)
         character_name, message = self.get_character_name_from_emotes(message)
         requests.post("http://localhost:8008/",
                       json={"message": message,

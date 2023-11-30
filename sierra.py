@@ -17,9 +17,7 @@ elevenlabs.set_api_key(config('ELEVENLABS_API_KEY'))
 
 
 def service():
-    loop = asyncio.new_event_loop()
-    loop.create_task(session.begin())
-    loop.run_forever()
+    asyncio.run(session.process())
 
 
 def api():

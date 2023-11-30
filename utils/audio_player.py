@@ -1,4 +1,5 @@
 import traceback
+from datetime import datetime
 
 import numpy as np
 import pyaudio
@@ -7,23 +8,15 @@ from decouple import config
 
 
 class AudioPlayer:
-    def __init__(self, file_bytes):
+    def __init__(self, output_audio):
         self.py_audio = pyaudio.PyAudio()
-        self.file_bytes = file_bytes
+        self.output = output_audio
 
     def __enter__(self):
-        self.file = open('temp/output.mp3', 'wb')
-        self.file.write(self.file_bytes)
-        self.file.seek(0)
         return self
 
     def __exit__(self, exc_type, exc_value, tb):
-        self.file.close()
-        if exc_type is not None:
-            traceback.print_exception(exc_type, exc_value, tb)
-            # return False # uncomment to pass exception through
-
-        return True
+        pass
 
     def play_audio_chunk(self):
         stream = self.py_audio.open(format=pyaudio.paInt16,
@@ -31,7 +24,7 @@ class AudioPlayer:
                                     rate=config('SAMPLE_RATE', cast=int),
                                     output=True)
 
-        with audioread.audio_open(self.file.name) as f:
+        with audioread.audio_open(self.output.audio.file_name) as f:
             for buf in f:
                 audio_array = np.frombuffer(buf, dtype=np.int16)
                 stream.write(audio_array.tobytes())
