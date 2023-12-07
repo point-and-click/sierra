@@ -1,7 +1,7 @@
 import asyncio
 import pickle
 import queue
-import time
+import sys
 from datetime import datetime
 from threading import Thread
 
@@ -14,9 +14,9 @@ from ai.open_ai import ChatGPT, MessageRole
 from ai.output import AiOutput
 from play import characters, tasks
 from sessions.history import History
-from utils.audio_player import AudioPlayer
 from utils.logging import log
 from utils.logging._format import nl, tab
+from utils.pygame_manager import SCREEN
 
 ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
 DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
@@ -34,9 +34,12 @@ class Session:
     def __init__(self):
         if not self._initialized:
             self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            self.characters = {character_name: characters.get(character_name) for character_name in
+                               config('CHARACTERS').split(',')}
 
             self.task = tasks.get(config('TASK'))
 
+            self.user_rules = []
             self.history = []
             self.output_queue = queue.Queue()
             self.input_queue = queue.Queue()
@@ -44,7 +47,6 @@ class Session:
             self.response_word_count = 0
 
             self.playback = Playback()
-            self.screen = None
             self.listener = None
             self.accepted_summary = False
             self.declined_summary = False
@@ -58,13 +60,9 @@ class Session:
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        for key in ['listener', 'input_queue', 'output_queue', 'screen']:
+        for key in ['listener', 'input_queue', 'output_queue']:
             del state[key]
         return state
-
-    # The way this works is maddening.
-    def __setstate__(self, state):
-        self.history = state.get('history', [])
 
     def __repr__(self):
         return '\n'.join(
@@ -75,12 +73,6 @@ class Session:
         )
 
     async def process(self):
-        pygame.init()
-        self.screen = pygame.display.set_mode((1920, 1080))
-        self.screen.fill((0, 255, 0))
-        pygame.display.update()
-        pygame.display.set_caption("Sierra")
-
         input_task = asyncio.create_task(self.process_input())
         output_task = asyncio.create_task(self.process_output())
 
@@ -102,22 +94,25 @@ class Session:
                 await asyncio.sleep(0.1)
 
     async def play_output(self, output):
-        await output.character.speak(output, self.playback, self.screen)
-        self.screen.fill((0, 255, 0))
+        await output.character.speak(output, self.playback)
+        SCREEN.fill((0, 255, 0))
         pygame.display.update()
 
     def get_chat_response(self, ai_input):
+        self.pre_process()
+
         log.info(f"Getting chat response for: {ai_input.message}")
         prompt = ai_input.message
-        character = characters[ai_input.character]
+        character = self.characters[ai_input.character]
 
         messages = [
             {"role": MessageRole.SYSTEM.value,
-             "content": f'You will be playing the part of multiple characters. In each prompt you will be given specific rules to the character you will be playing. Respond as the character described.'},
+             "content": f'You will be playing the part of multiple characters. Respond as the character described. Ignore character names within parentheses. No need to announce which character is speaking. I will understand.'},
             {"role": MessageRole.USER.value,
-             "content": f'{self.task.description} {character.motivation} {character.rules} {prompt}'},
+             "content": f'{self.task.description} {character.motivation} {character.rules}'},
             *[{"role": entry.role, "content": entry.content} for entry in self.history],
-            {"role": MessageRole.USER.value, "content": f'{prompt}'}
+            {"role": MessageRole.USER.value,
+             "content": f'{" ".join([rule.text for rule in character.user_rules])} {prompt}'}
         ]
         response, usage, audio_file = character.chat(messages)
 
@@ -134,12 +129,16 @@ class Session:
         if self.task.summary.user:
             self.history.append(History(MessageRole.USER.value, prompt))
         if self.task.summary.assistant:
-            self.history.append(History(MessageRole.ASSISTANT.value, response))
+            self.history.append(History(MessageRole.ASSISTANT.value, f'({character.name}): {response}'))
 
-        self.assess(usage)
-        self.save()
+        self.post_process(usage)
 
-    def assess(self, usage):
+    def pre_process(self):
+        for character in self.characters.values():
+            character.user_rules = [rule for rule in character.user_rules if rule.expiration_time > datetime.now()]
+            log.info(f'Rules:\n{(nl + tab).join([rule.text for rule in character.user_rules])}')
+
+    def post_process(self, usage):
         history_word_count = sum([len(entry.content.split()) for entry in self.history])
 
         if config('DEBUG_USAGE', cast=bool):
@@ -165,12 +164,14 @@ class Session:
         if history_word_count > config("OPENAI_CHAT_COMPLETION_MAX_WORD_COUNT", cast=int):
             self.summarize()
 
+        self.save()
+
     def summarize(self):
         self.accepted_summary = False
         self.declined_summary = False
 
         messages = [
-            *[{"role": entry.role, "content": entry.content} for entry in self.history],
+            *[{"role": entry.role, "content": entry.content} for entry in self.history.history_lines],
             {"role": "system", "content": self.task.summary.description}
         ]
 
@@ -197,15 +198,6 @@ class Session:
         log.info('Summary accepted.')
         return True
 
-    def save(self):
-        pickle.dump(self, open(f'saves/{self.name}.sierra', 'wb'))
-
-    def load(self, file_name):
-        self.history = pickle.load(open(file_name, 'rb')).history
-        log.info(
-            f'Loaded history:\n\t{f"{nl}{tab}".join([repr(entry) for entry in self.history])}'
-        )
-
     def on_press(self, key):
         if key == ACCEPT_SUMMARY_BINDING:
             self.accepted_summary = True
@@ -218,6 +210,21 @@ class Session:
             self.playback.paused = True
             log.info('Paused')
 
+    def save(self):
+        pickle.dump(self, open(f'saves/{self.name}.sierra', 'wb'))
+
+    def load(self, file_name):
+        obj = pickle.load(open(file_name, 'rb'))
+        self.characters = obj.characters
+        for character in self.characters.values():
+            log.info(
+                f'Loaded rules for ({character.name}):\n\t{f"{nl}{tab}".join([repr(entry) for entry in character.user_rules])}'
+            )
+        self.history = obj.history
+        log.info(
+            f'Loaded history:\n\t{f"{nl}{tab}".join([repr(entry) for entry in self.history])}'
+        )
+
 
 class Playback:
     def __init__(self):
@@ -226,3 +233,4 @@ class Playback:
 
 def dummy(obj: Session, ai_input):
     obj.get_chat_response(ai_input)
+    return sys.exit()

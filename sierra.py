@@ -30,10 +30,12 @@ if __name__ == '__main__':
     with Session() as session:
         saves = glob('saves/*.sierra')
         if saves:
-            if input('Load from previous session? (y/N): ').lower().startswith('y'):
+            if input('Load history from previous session? (y/N): ').lower().startswith('y'):
                 log.info(''.join([f'{i}: {save}\n' for i, save in enumerate(saves)]))
                 index = int(input('Load save: '))
                 session.load(saves[index])
+
+        log.info('Running Sierra')
 
         service_thread = Thread(target=service)
         service_thread.start()

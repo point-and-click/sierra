@@ -1,14 +1,8 @@
-import json
-
-import audioread
-import pyaudio
 import requests
-import pygame
 
 from decouple import config
 
 from utils.logging import log
-from utils.word_wrap import WordWrap
 
 
 class PlayHt:
@@ -77,3 +71,7 @@ class CustomException(Exception):
         super().__init__(message)
 
         self.errors = errors
+
+
+if __name__ == '__main__':
+    PlayHt.fetch_voices()

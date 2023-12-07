@@ -1,0 +1,60 @@
+{
+  "emotes": {
+    "roughc3Other": "Other Poop",
+    "roughc3B": "B",
+    "roughc3God": "God"
+  },
+  "emote_prefix": "roughc3",
+  "events": {
+    "channel_point_redemption": {
+      "ask_chatbot_event_title": "Ask Chatbot A Question",
+      "add_rule_event_title": "Add a Rule",
+      "prefix": "",
+      "suffix": ""
+    },
+    "cheer": {
+      "prefix": "",
+      "suffix": ""
+    },
+    "follow": {
+      "prefix": "",
+      "suffix": "Say something nice about their name then make fun of my channel."
+    },
+    "hype_train_start": {
+      "prefix": "",
+      "suffix": "Exclaim you have no idea what a hype train is and are confused why anyone would be hyped about my channel at all."
+    },
+    "hype_train_end": {
+      "prefix": "",
+      "suffix": "Ask the viewers how that went and let them know they can calm down now."
+    },
+    "poll_begin": {
+      "prefix": "",
+      "suffix": "Choose one of the options and explain why."
+    },
+    "poll_end": {
+      "prefix": "",
+      "suffix": "\\nWhat do you think about these results?"
+    },
+    "prediction_begin": {
+      "prefix": "",
+      "suffix": "\\nMake your prediction and explain why."
+    },
+    "prediction_end": {
+      "prefix": "",
+      "suffix": " What do you think of this result?"
+    },
+    "raid": {
+      "prefix": "Holy shit!",
+      "suffix": "Give them a sincere, emphatic \"Thank you!\" and explain my shtick: I use an AI chatbot (you) to guide me through games and provide commentary."
+    },
+    "subscribe": {
+      "prefix": "Oh, no way! ",
+      "suffix": ""
+    },
+    "subscribe_gift": {
+      "prefix": "Oh, wow! ",
+      "suffix": "Say something nice about their name then trash talk my stream."
+    }
+  }
+}
