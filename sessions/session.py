@@ -16,7 +16,6 @@ from play import characters, tasks
 from sessions.history import History
 from utils.logging import log
 from utils.logging._format import nl, tab
-from utils.pygame_manager import SCREEN
 
 ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
 DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
@@ -47,6 +46,7 @@ class Session:
             self.response_word_count = 0
 
             self.playback = Playback()
+            self.screen = None
             self.listener = None
             self.accepted_summary = False
             self.declined_summary = False
@@ -60,7 +60,7 @@ class Session:
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        for key in ['listener', 'input_queue', 'output_queue']:
+        for key in ['listener', 'input_queue', 'output_queue', 'screen']:
             del state[key]
         return state
 
@@ -73,6 +73,11 @@ class Session:
         )
 
     async def process(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((1920, 1080))
+        self.screen.fill((0, 255, 0))
+        pygame.display.update()
+        pygame.display.set_caption("Sierra")
         input_task = asyncio.create_task(self.process_input())
         output_task = asyncio.create_task(self.process_output())
 
@@ -94,8 +99,8 @@ class Session:
                 await asyncio.sleep(0.1)
 
     async def play_output(self, output):
-        await output.character.speak(output, self.playback)
-        SCREEN.fill((0, 255, 0))
+        await output.character.speak(output, self.playback, self.screen)
+        self.screen.fill((0, 255, 0))
         pygame.display.update()
 
     def get_chat_response(self, ai_input):
@@ -107,7 +112,7 @@ class Session:
 
         messages = [
             {"role": MessageRole.SYSTEM.value,
-             "content": f'You will be playing the part of multiple characters. Respond as the character described. Ignore character names within parentheses. No need to announce which character is speaking. I will understand.'},
+             "content": f'You will be playing the part of multiple characters. Respond as the character described.'},
             {"role": MessageRole.USER.value,
              "content": f'{self.task.description} {character.motivation} {character.rules}'},
             *[{"role": entry.role, "content": entry.content} for entry in self.history],
@@ -129,7 +134,7 @@ class Session:
         if self.task.summary.user:
             self.history.append(History(MessageRole.USER.value, prompt))
         if self.task.summary.assistant:
-            self.history.append(History(MessageRole.ASSISTANT.value, f'({character.name}): {response}'))
+            self.history.append(History(MessageRole.ASSISTANT.value, response))
 
         self.post_process(usage)
 

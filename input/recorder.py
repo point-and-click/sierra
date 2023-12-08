@@ -2,14 +2,12 @@ import time
 import wave
 
 import pyaudio
-import pygame
 import requests
 from decouple import config
 from pynput import keyboard
 
 from ai.open_ai import Whisper
 from utils.logging import log
-from utils.pygame_manager import NOTIFY_RELEASE, NOTIFY_PRESS
 
 RECORD_BINDING = 96  # NUM_0
 
@@ -71,7 +69,6 @@ class Recorder:
 
         if RECORD_BINDING <= number < RECORD_BINDING + self.character_count and not self.recording:
             self.character_number = number - RECORD_BINDING
-            pygame.mixer.Sound.play(NOTIFY_PRESS)
             self.recording = True
             log.info('input.py: Recording Started')
 
@@ -87,7 +84,6 @@ class Recorder:
             number = 0
 
         if number == RECORD_BINDING + self.character_number and self.recording:
-            pygame.mixer.Sound.play(NOTIFY_RELEASE)
             self.recording = False
             log.info('input.py: Recording Stopped')
 

@@ -32,7 +32,9 @@ class PlayHt:
             "sample_rate": config('SAMPLE_RATE', cast=int),
             "voice": voice,
             "text": text,
-            "voice_engine": "PlayHT2.0-turbo"
+            "voice_engine": "PlayHT2.0-turbo",
+            "voice_guidance": 5,
+            "temperature": 0.5
         }
         headers = {
             "AUTHORIZATION": f'Bearer {config("PLAY_HT_API_KEY")}',

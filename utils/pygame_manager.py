@@ -1,10 +1,9 @@
 import pygame
 from decouple import config
 
+
 pygame.init()
 SCREEN = pygame.display.set_mode((1920, 1080))
-SCREEN.fill((0, 255, 0))
-pygame.display.update()
 pygame.display.set_caption("Sierra")
 NOTIFY_PRESS = pygame.mixer.Sound("assets/audio/beep_basic_high.mp3")
 NOTIFY_PRESS.set_volume(0.1)
