@@ -1,14 +1,8 @@
-import json
-
-import audioread
-import pyaudio
 import requests
-import pygame
 
 from decouple import config
 
 from utils.logging import log
-from utils.word_wrap import WordWrap
 
 
 class PlayHt:
@@ -38,7 +32,9 @@ class PlayHt:
             "sample_rate": config('SAMPLE_RATE', cast=int),
             "voice": voice,
             "text": text,
-            "voice_engine": "PlayHT2.0-turbo"
+            "voice_engine": "PlayHT2.0-turbo",
+            "voice_guidance": 5,
+            "temperature": 0.5
         }
         headers = {
             "AUTHORIZATION": f'Bearer {config("PLAY_HT_API_KEY")}',
@@ -77,3 +73,7 @@ class CustomException(Exception):
         super().__init__(message)
 
         self.errors = errors
+
+
+if __name__ == '__main__':
+    PlayHt.fetch_voices()
