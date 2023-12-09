@@ -1,0 +1,11 @@
+audio:
+  chunks: 9
+  channels: 2
+  fs: 44100
+binds:
+- vk: 96
+  character: Other
+- vk: 97
+  character: B
+- vk: 98
+  character: God

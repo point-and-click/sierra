@@ -1,10 +1,10 @@
 import asyncio
-import json
 import re
 
 import requests
 from twitchAPI.oauth import UserAuthenticationStorageHelper
 from twitchAPI.twitch import Twitch
+from yaml import safe_load
 
 from input.twitch.bots import Bot
 from input.twitch.config import Events, Emotes, Secrets
@@ -49,8 +49,8 @@ class InputController:
 
 class InputConfig:
     def __init__(self):
-        with open('config.json', 'r') as file:
-            self._raw = json.load(file)
+        with open('config.yaml', 'r') as file:
+            self._raw = safe_load(file)
         self.broadcaster = self._raw.get('broadcaster', [])
         self.secrets = Secrets(self._raw.get('secrets'))
         self.emotes = Emotes(self._raw.get('emotes'))
