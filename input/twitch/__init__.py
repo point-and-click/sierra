@@ -7,7 +7,7 @@ from twitchAPI.oauth import UserAuthenticationStorageHelper
 from twitchAPI.twitch import Twitch
 
 from input.twitch.bots import Bot
-from input.twitch.helpers import Events, Emotes, Secrets
+from input.twitch.config import Events, Emotes, Secrets
 from input.twitch.listeners import Listener, FunctionType
 
 
@@ -47,11 +47,10 @@ class InputController:
         await asyncio.gather(notification_task, chatbot_task)
 
 
-
 class InputConfig:
     def __init__(self):
-        with open('config.json', 'r') as config:
-            self._raw = json.load(config)
+        with open('config.json', 'r') as file:
+            self._raw = json.load(file)
         self.broadcaster = self._raw.get('broadcaster', [])
         self.secrets = Secrets(self._raw.get('secrets'))
         self.emotes = Emotes(self._raw.get('emotes'))

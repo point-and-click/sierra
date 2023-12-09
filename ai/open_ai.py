@@ -1,11 +1,8 @@
-import json
-import logging
 from enum import Enum
 
 import openai
 import whisper
 from decouple import config
-from openai import FineTuningJob
 
 from utils.logging import log
 
@@ -34,17 +31,17 @@ class ChatGPT:
                                                       max_tokens=config('OPENAI_CHAT_COMPLETION_MAX_TOKENS', cast=int))
 
         except openai.error.TryAgain as err:
-            logging.error(err)
+            log.error(err)
             return
         except openai.error.Timeout as err:
-            logging.error(err)
+            log.error(err)
             ChatGPT.chat(messages)
             return
 
         try:
             return completion.choices[0].message.content, completion.usage
         except IndexError as err:
-            logging.warning(err)
+            log.warning(err)
             return
 
     @staticmethod
@@ -54,7 +51,7 @@ class ChatGPT:
             purpose='fine-tune'
         )
 
-        job = openai.FineTuningJob.create(training_file=file.openai_id, model="gpt-3.5-turbo")
+        job = openai.FineTune.create(training_file=file.openai_id, model="gpt-3.5-turbo")
 
         log.info(job)
 

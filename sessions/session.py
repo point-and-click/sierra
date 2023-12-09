@@ -15,7 +15,7 @@ from ai.output import AiOutput
 from play import characters, tasks
 from sessions.history import History
 from utils.logging import log
-from utils.logging._format import nl, tab
+from utils.logging.format import nl, tab
 
 ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
 DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
@@ -176,7 +176,7 @@ class Session:
         self.declined_summary = False
 
         messages = [
-            *[{"role": entry.role, "content": entry.content} for entry in self.history.history_lines],
+            *[{"role": entry.role, "content": entry.content} for entry in self.history],
             {"role": "system", "content": self.task.summary.description}
         ]
 

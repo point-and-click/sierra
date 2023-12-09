@@ -1,13 +1,20 @@
+# Sierra
+audioread
+flask
+pyaudio
+pygame
+pyyaml
+requests
+
+# AI Services
 elevenlabs
-flake8
 openai
 openai-whisper
-pyaudio
+
+# Input Services
+numpy
 pynput
-python-decouple
-pyyaml
-flask
-requests
 twitchAPI
 
-audioread
+# Development
+flake8

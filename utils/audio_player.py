@@ -1,9 +1,6 @@
-import traceback
-from datetime import datetime
-
+import audioread
 import numpy as np
 import pyaudio
-import audioread
 from decouple import config
 
 

@@ -2,25 +2,25 @@ import logging
 import re
 import sys
 
-from utils.logging import _format, palette
+from utils.logging import format, palette
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(message)s')
 
 replacements = {
     # AI Clients
-    'OpenAI': f'{_format.color(palette.material.cyan)}OpenAI{_format.reset()}',
-    'ElevenLabs': f'{_format.color(palette.material.cyan)}ElevenLabs{_format.reset()}',
-    'PlayHT': f'{_format.color(palette.material.cyan)}PlayHT{_format.reset()}',
-    'Whisper': f'{_format.color(palette.material.cyan)}Whisper{_format.reset()}',
+    'OpenAI': f'{format.color(palette.material.cyan)}OpenAI{format.reset()}',
+    'ElevenLabs': f'{format.color(palette.material.cyan)}ElevenLabs{format.reset()}',
+    'PlayHT': f'{format.color(palette.material.cyan)}PlayHT{format.reset()}',
+    'Whisper': f'{format.color(palette.material.cyan)}Whisper{format.reset()}',
     # Usage
-    'Usage': f'{_format.color(palette.material.pink)}Usage{_format.reset()}',
-    '[0-9]+ tokens': f'{_format.color(palette.material.purple)}\\g<0>{_format.reset()}',
-    '[0-9]+ words': f'{_format.color(palette.material.purple)}\\g<0>{_format.reset()}',
+    'Usage': f'{format.color(palette.material.pink)}Usage{format.reset()}',
+    '[0-9]+ tokens': f'{format.color(palette.material.purple)}\\g<0>{format.reset()}',
+    '[0-9]+ words': f'{format.color(palette.material.purple)}\\g<0>{format.reset()}',
     # input.py
-    'input.py': f'{_format.color(palette.material.orange)}input.py{_format.reset()}',
-    'Recording': f'{_format.color(palette.material.red)}Recording{_format.reset()}',
+    'input.py': f'{format.color(palette.material.orange)}input.py{format.reset()}',
+    'Recording': f'{format.color(palette.material.red)}Recording{format.reset()}',
     # Characters
-    '\(([^\)]+?)\)': f'{_format.color(palette.material.blue)}(\\g<1>){_format.reset()}',
+    '\(([^\)]+?)\)': f'{format.color(palette.material.blue)}(\\g<1>){format.reset()}',
 }
 
 
