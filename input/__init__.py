@@ -15,10 +15,10 @@ def ai_input():
     return "Good job!", 200
 
 
-@app.route("/rule", methods=["POST"])
+@app.route("/rules", methods=["POST"])
 def add_rule():
     session = Session()
-    session.characters.get(request.json.get('character', 'Other Poop')).add_rule(request.json)
+    session.characters.get(request.json.get('character')).add_rule(request.json)
     return "Good job!", 200
 
 

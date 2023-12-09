@@ -7,5 +7,7 @@ pynput
 python-decouple
 pyyaml
 flask
+requests
+twitchAPI
 
 audioread
