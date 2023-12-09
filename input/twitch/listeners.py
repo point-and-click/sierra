@@ -1,6 +1,7 @@
 import re
 from enum import Enum
 
+import requests
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.helper import first
 from twitchAPI.object.eventsub import (ChannelCheerEvent, ChannelPointsCustomRewardRedemptionAddEvent,
@@ -9,13 +10,19 @@ from twitchAPI.object.eventsub import (ChannelCheerEvent, ChannelPointsCustomRew
                                        HypeTrainEndEvent, ChannelPredictionEvent, ChannelPredictionEndEvent)
 from twitchAPI.type import AuthScope
 
-from input.twitch import InputController
+from input.twitch.config import FunctionType
 from utils.logging import log
 
 
-class FunctionType(Enum):
-    CHAT = "chat"
-    RULE = "rule"
+def submit_rule(rule, character):
+    requests.post("http://localhost:8008/rule",
+                  json={"rule": rule, "character": character})
+
+
+def submit_chat(message, character):
+    requests.post("http://localhost:8008/chat",
+                  json={"message": message,
+                        "character": character})
 
 
 class Listener:
@@ -67,13 +74,13 @@ class Listener:
 
         match event.function:
             case FunctionType.CHAT:
-                InputController.submit_chat(
+                submit_chat(
                     event.message.format(data=data, message=message),
                     character
                 )
             case FunctionType.RULE:
-                InputController.submit_rule(message, character)
-                InputController.submit_chat(
+                submit_rule(message, character)
+                submit_chat(
                     event.message.format(data=data, message=message),
                     character
                 )
@@ -86,7 +93,7 @@ class Listener:
         events = self.controller.config.events.map.get('cheer')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.bits], default=1))
 
-        InputController.submit_chat(
+        submit_chat(
             event.message.format(data=data, message=message),
             character
         )
@@ -95,7 +102,7 @@ class Listener:
         events = self.controller.config.events.map.get('follow')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.followed_at], default=1))
 
-        InputController.submit_chat(
+        submit_chat(
             event.message.format(data=data),
             self.controller.config.emotes.characters[0]
         )
@@ -104,7 +111,7 @@ class Listener:
         events = self.controller.config.events.map.get('hype_train_start')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.level], default=1))
 
-        InputController.submit_chat(
+        submit_chat(
             event.message.format(data=data),
             self.controller.config.emotes.characters[0]
         )
@@ -113,7 +120,7 @@ class Listener:
         events = self.controller.config.events.map.get('hype_end')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.level], default=1))
 
-        InputController.submit_chat(
+        submit_chat(
             event.message.format(data=data),
             self.controller.config.emotes.characters[0]
         )
@@ -122,7 +129,7 @@ class Listener:
         events = self.controller.config.events.map.get('poll_begin')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.choices)], default=1))
 
-        InputController.submit_chat(
+        submit_chat(
             event.message.format(data=data),
             self.controller.config.emotes.characters[0]
         )
@@ -131,7 +138,7 @@ class Listener:
         events = self.controller.config.events.map.get('poll_end')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.choices)], default=1))
 
-        InputController.submit_chat(
+        submit_chat(
             event.message.format(data=data),
             self.controller.config.emotes.characters[0]
         )
@@ -140,7 +147,7 @@ class Listener:
         events = self.controller.config.events.map.get('prediction')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.outcomes)], default=1))
 
-        InputController.submit_chat(
+        submit_chat(
             event.message.format(data=data),
             self.controller.config.emotes.characters[0]
         )
@@ -149,7 +156,7 @@ class Listener:
         events = self.controller.config.events.map.get('prediction_end')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.outcomes)], default=1))
 
-        InputController.submit_chat(
+        submit_chat(
             event.message.format(data=data),
             self.controller.config.emotes.characters[0]
         )
@@ -158,7 +165,7 @@ class Listener:
         events = self.controller.config.events.map.get('raid')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.viewers], default=1))
 
-        InputController.submit_chat(
+        submit_chat(
             event.message.format(data=data),
             self.controller.config.emotes.characters[0]
         )
@@ -168,7 +175,7 @@ class Listener:
         events = self.controller.config.events.map.get('subscribe')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.tier], default=1))
 
-        InputController.submit_chat(
+        submit_chat(
             event.message.format(data=data),
             self.controller.config.emotes.characters[0]
         )
@@ -177,7 +184,7 @@ class Listener:
         events = self.controller.config.events.map.get('subscribe_gift')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.tier], default=1))
 
-        InputController.submit_chat(
+        submit_chat(
             event.message.format(data=data),
             self.controller.config.emotes.characters[0]
         )

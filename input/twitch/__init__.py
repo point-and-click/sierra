@@ -1,7 +1,6 @@
 import asyncio
 import re
 
-import requests
 from twitchAPI.oauth import UserAuthenticationStorageHelper
 from twitchAPI.twitch import Twitch
 from yaml import safe_load
@@ -19,17 +18,6 @@ class InputController:
         self.read_result_ids = []
         self.bot = Bot(self)
         self.listener = Listener(self)
-
-    @staticmethod
-    def submit_rule(rule, character):
-        requests.post("http://localhost:8008/rule",
-                      json={"rule": rule, "character": character})
-
-    @staticmethod
-    def submit_chat(message, character):
-        requests.post("http://localhost:8008/chat",
-                      json={"message": message,
-                            "character": character})
 
     def process(self, message):
         characters = re.findall(rf'{self.config.emotes.prefix}(\S+)', message, flags=re.IGNORECASE)

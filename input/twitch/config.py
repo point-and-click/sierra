@@ -1,5 +1,9 @@
-from input.twitch import FunctionType
+from enum import Enum
 
+
+class FunctionType(Enum):
+    CHAT = "chat"
+    RULE = "rule"
 
 class Secrets:
     def __init__(self, secrets):
