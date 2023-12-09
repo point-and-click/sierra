@@ -1,7 +1,5 @@
 import re
-from enum import Enum
 
-import requests
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.helper import first
 from twitchAPI.object.eventsub import (ChannelCheerEvent, ChannelPointsCustomRewardRedemptionAddEvent,
@@ -10,26 +8,23 @@ from twitchAPI.object.eventsub import (ChannelCheerEvent, ChannelPointsCustomRew
                                        HypeTrainEndEvent, ChannelPredictionEvent, ChannelPredictionEndEvent)
 from twitchAPI.type import AuthScope
 
+from input import chat, rule
 from input.twitch.config import FunctionType
 from utils.logging import log
 
 
-def submit_rule(rule, character):
-    requests.post("http://localhost:8008/rule",
-                  json={"rule": rule, "character": character})
-
-
-def submit_chat(message, character):
-    requests.post("http://localhost:8008/chat",
-                  json={"message": message,
-                        "character": character})
-
-
 class Listener:
-    def __init__(self, controller):
-        self.controller = controller
+    def __init__(self, client, events, emotes, target_scopes, event_sub, user):
+        self.client = client
+        self.events = events
+        self.emotes = emotes
+        self.target_scopes = target_scopes
+        self.event_sub = event_sub
+        self.user = user
 
-        self.target_scopes = [
+    @classmethod
+    async def create(cls, client, events, emotes):
+        target_scopes = [
             AuthScope.BITS_READ,
             AuthScope.CHANNEL_READ_REDEMPTIONS,
             AuthScope.CHANNEL_READ_SUBSCRIPTIONS,
@@ -42,149 +37,190 @@ class Listener:
             AuthScope.CHAT_EDIT
         ]
 
-        self.user = None
-        self.event_sub = None
+        event_sub = EventSubWebsocket(client)
+        user = await first(client.get_users())
+
+        return Listener(client, events, emotes, target_scopes, event_sub, user)
 
     async def start(self):
-        self.user = await first(self.controller.client.get_users())
-
-        self.event_sub = EventSubWebsocket(self.controller.client)
         self.event_sub.start()
 
-        await self.event_sub.listen_channel_cheer(self.user.id, self.on_cheer)
-        await self.event_sub.listen_channel_follow_v2(self.user.id, self.user.id, self.on_follow)
-        await self.event_sub.listen_channel_points_custom_reward_redemption_add(self.user.id,
-                                                                                self.on_channel_point_redemption)
-        await self.event_sub.listen_channel_poll_begin(self.user.id, self.on_poll_begin)
-        await self.event_sub.listen_channel_poll_end(self.user.id, self.on_poll_end)
-        await self.event_sub.listen_channel_prediction_begin(self.user.id, self.on_prediction)
-        await self.event_sub.listen_channel_prediction_end(self.user.id, self.on_prediction_end)
-        await self.event_sub.listen_channel_raid(to_broadcaster_user_id=self.user.id, callback=self.on_raid)
-        await self.event_sub.listen_hype_train_begin(self.user.id, self.on_hype_train_start)
-        await self.event_sub.listen_hype_train_end(self.user.id, self.on_hype_end)
-        await self.event_sub.listen_channel_subscribe(self.user.id, self.on_subscribe)
-        await self.event_sub.listen_channel_subscription_gift(self.user.id, self.on_subscribe_gift)
+        await self.event_sub.listen_channel_cheer(
+            broadcaster_user_id=self.user.id,
+            callback=self.on_cheer
+        )
+        await self.event_sub.listen_channel_follow_v2(
+            broadcaster_user_id=self.user.id,
+            moderator_user_id=self.user.id,
+            callback=self.on_follow
+        )
+        await self.event_sub.listen_channel_points_custom_reward_redemption_add(
+            broadcaster_user_id=self.user.id,
+            callback=self.on_channel_point_redemption
+        )
+        await self.event_sub.listen_channel_poll_begin(
+            broadcaster_user_id=self.user.id,
+            callback=self.on_poll_begin
+        )
+        await self.event_sub.listen_channel_poll_end(
+            broadcaster_user_id=self.user.id,
+            callback=self.on_poll_end
+        )
+        await self.event_sub.listen_channel_prediction_begin(
+            broadcaster_user_id=self.user.id,
+            callback=self.on_prediction
+        )
+        await self.event_sub.listen_channel_prediction_end(
+            broadcaster_user_id=self.user.id,
+            callback=self.on_prediction_end
+        )
+        await self.event_sub.listen_channel_raid(
+            to_broadcaster_user_id=self.user.id,
+            callback=self.on_raid
+        )
+        await self.event_sub.listen_hype_train_begin(
+            broadcaster_user_id=self.user.id,
+            callback=self.on_hype_train_start
+        )
+        await self.event_sub.listen_hype_train_end(
+            broadcaster_user_id=self.user.id,
+            callback=self.on_hype_end
+        )
+        await self.event_sub.listen_channel_subscribe(
+            broadcaster_user_id=self.user.id,
+            callback=self.on_subscribe
+        )
+        await self.event_sub.listen_channel_subscription_gift(
+            broadcaster_user_id=self.user.id,
+            callback=self.on_subscribe_gift
+        )
         log.info('Listening for Twitch events.')
 
     async def on_channel_point_redemption(self, data: ChannelPointsCustomRewardRedemptionAddEvent):
-        character, message = self.controller.process(data.event.user_input)
+        character, message = process(self.emotes, data.event.user_input)
 
-        events = self.controller.config.events.map.get('channel_point_redemption')
+        events = self.events.map.get('channel_point_redemption')
         event = events.get(data.event.reward.title)
 
         match event.function:
             case FunctionType.CHAT:
-                submit_chat(
+                chat.submit(
                     event.message.format(data=data, message=message),
                     character
                 )
             case FunctionType.RULE:
-                submit_rule(message, character)
-                submit_chat(
+                rule.submit(message, character)
+                chat.submit(
                     event.message.format(data=data, message=message),
                     character
                 )
 
     async def on_cheer(self, data: ChannelCheerEvent):
-        character, message = self.controller.process(data.event.message)
+        character, message = process(self.emotes, data.event.message)
 
         message = re.sub(r'\bcheer\d+\b', '', message, flags=re.IGNORECASE)
 
-        events = self.controller.config.events.map.get('cheer')
+        events = self.events.map.get('cheer')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.bits], default=1))
 
-        submit_chat(
+        chat.submit(
             event.message.format(data=data, message=message),
             character
         )
 
     async def on_follow(self, data: ChannelFollowEvent):
-        events = self.controller.config.events.map.get('follow')
+        events = self.events.map.get('follow')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.followed_at], default=1))
 
-        submit_chat(
+        chat.submit(
             event.message.format(data=data),
-            self.controller.config.emotes.characters[0]
+            self.emotes.characters[0]
         )
 
     async def on_hype_train_start(self, data: HypeTrainEvent):
-        events = self.controller.config.events.map.get('hype_train_start')
+        events = self.events.map.get('hype_train_start')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.level], default=1))
 
-        submit_chat(
+        chat.submit(
             event.message.format(data=data),
-            self.controller.config.emotes.characters[0]
+            self.emotes.characters[0]
         )
 
     async def on_hype_end(self, data: HypeTrainEndEvent):
-        events = self.controller.config.events.map.get('hype_end')
+        events = self.events.map.get('hype_end')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.level], default=1))
 
-        submit_chat(
+        chat.submit(
             event.message.format(data=data),
-            self.controller.config.emotes.characters[0]
+            self.emotes.characters[0]
         )
 
     async def on_poll_begin(self, data: ChannelPollBeginEvent):
-        events = self.controller.config.events.map.get('poll_begin')
+        events = self.events.map.get('poll_begin')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.choices)], default=1))
 
-        submit_chat(
+        chat.submit(
             event.message.format(data=data),
-            self.controller.config.emotes.characters[0]
+            self.emotes.characters[0]
         )
 
     async def on_poll_end(self, data: ChannelPollEndEvent):
-        events = self.controller.config.events.map.get('poll_end')
+        events = self.events.map.get('poll_end')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.choices)], default=1))
 
-        submit_chat(
+        chat.submit(
             event.message.format(data=data),
-            self.controller.config.emotes.characters[0]
+            self.emotes.characters[0]
         )
 
     async def on_prediction(self, data: ChannelPredictionEvent):
-        events = self.controller.config.events.map.get('prediction')
+        events = self.events.map.get('prediction')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.outcomes)], default=1))
 
-        submit_chat(
+        chat.submit(
             event.message.format(data=data),
-            self.controller.config.emotes.characters[0]
+            self.emotes.characters[0]
         )
 
     async def on_prediction_end(self, data: ChannelPredictionEndEvent):
-        events = self.controller.config.events.map.get('prediction_end')
+        events = self.events.map.get('prediction_end')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.outcomes)], default=1))
 
-        submit_chat(
+        chat.submit(
             event.message.format(data=data),
-            self.controller.config.emotes.characters[0]
+            self.emotes.characters[0]
         )
 
     async def on_raid(self, data: ChannelRaidEvent):
-        events = self.controller.config.events.map.get('raid')
+        events = self.events.map.get('raid')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.viewers], default=1))
 
-        submit_chat(
+        chat.submit(
             event.message.format(data=data),
-            self.controller.config.emotes.characters[0]
+            self.emotes.characters[0]
         )
 
     async def on_subscribe(self, data: ChannelSubscribeEvent):
-
-        events = self.controller.config.events.map.get('subscribe')
+        events = self.events.map.get('subscribe')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.tier], default=1))
 
-        submit_chat(
+        chat.submit(
             event.message.format(data=data),
-            self.controller.config.emotes.characters[0]
+            self.emotes.characters[0]
         )
 
     async def on_subscribe_gift(self, data: ChannelSubscriptionGiftEvent):
-        events = self.controller.config.events.map.get('subscribe_gift')
+        events = self.events.map.get('subscribe_gift')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.tier], default=1))
 
-        submit_chat(
+        chat.submit(
             event.message.format(data=data),
-            self.controller.config.emotes.characters[0]
+            self.emotes.characters[0]
         )
+
+
+def process(emotes, message):
+    characters = re.findall(rf'{emotes.prefix}(\S+)', message, flags=re.IGNORECASE)
+    message = re.sub(rf'{emotes.prefix}(\S+)', '', message, flags=re.IGNORECASE)
+
+    return characters[0] if characters else emotes.characters[0], message

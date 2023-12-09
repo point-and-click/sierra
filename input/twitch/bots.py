@@ -8,20 +8,25 @@ from utils.logging import log
 
 
 class Bot:
-    def __init__(self, controller):
-        self.controller = controller
+    def __init__(self, chat, broadcaster):
+        self.chat = chat
+        self.broadcaster = broadcaster
+
+    @classmethod
+    async def create(cls, client, config):
+        chat = await Chat(client)
+        return Bot(chat, config.broadcaster)
 
     async def start(self):
         log.info('Starting chat bot')
-        chat = await Chat(self.controller.client)
-        chat.register_event(ChatEvent.READY, self.on_ready)
-        chat.register_command('rules', self.command_rules)
-        chat.start()
+        self.chat.register_event(ChatEvent.READY, self.on_ready)
+        self.chat.register_command('rules', self.command_rules)
+        self.chat.start()
         log.info('Chat bot started. Waiting for ready event.')
 
     async def on_ready(self, ready_event: EventData):
         log.info('Bot is ready for work, joining channel')
-        await ready_event.chat.join_room(self.controller.config.broadcaster)
+        await ready_event.chat.join_room(self.broadcaster)
         log.info('Bot joined channel')
 
     @staticmethod

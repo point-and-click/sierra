@@ -5,6 +5,7 @@ class FunctionType(Enum):
     CHAT = "chat"
     RULE = "rule"
 
+
 class Secrets:
     def __init__(self, secrets):
         self.app_id = secrets.get('app_id', None)

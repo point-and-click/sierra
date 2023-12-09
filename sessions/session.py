@@ -67,7 +67,7 @@ class Session:
     def __repr__(self):
         return '\n'.join(
             [
-                f'\tHistory:',
+                '\tHistory:',
                 *[f'\t\t{entry.role}: {entry.content}' for entry in self.history]
             ]
         )
@@ -112,7 +112,7 @@ class Session:
 
         messages = [
             {"role": MessageRole.SYSTEM.value,
-             "content": f'You will be playing the part of multiple characters. Respond as the character described.'},
+             "content": 'You will be playing the part of multiple characters. Respond as the character described.'},
             {"role": MessageRole.USER.value,
              "content": f'{self.task.description} {character.motivation} {character.rules}'},
             *[{"role": entry.role, "content": entry.content} for entry in self.history],
@@ -223,7 +223,8 @@ class Session:
         self.characters = obj.characters
         for character in self.characters.values():
             log.info(
-                f'Loaded rules for ({character.name}):\n\t{f"{nl}{tab}".join([repr(entry) for entry in character.user_rules])}'
+                f'''Loaded rules for ({character.name}):\n\t{f"{nl}{tab}".join(
+                    [repr(entry) for entry in character.user_rules])}'''
             )
         self.history = obj.history
         log.info(

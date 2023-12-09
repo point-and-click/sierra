@@ -8,7 +8,7 @@ import elevenlabs
 import openai
 from decouple import config
 
-from input import app
+from input import sierra
 from sessions.session import Session
 from utils.logging import log
 
@@ -23,7 +23,7 @@ def service():
 def api():
     sys.modules['flask.cli'].show_server_banner = lambda *x: None
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
-    app.run(port=8008)
+    sierra.run(port=8008)
 
 
 if __name__ == '__main__':

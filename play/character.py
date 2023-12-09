@@ -121,7 +121,9 @@ class Character:
         actual_rotation_amount = max(-self.max_rotation, min(self.max_rotation, target_rotation_amount))
         new_angle = max(-self.max_angle, min(self.max_angle, actual_rotation_amount + self.prev_angle))
         rotated_image = pygame.transform.rotate(self.image, new_angle)
-        rotated_rect = rotated_image.get_rect(center=(config('CHARACTER_CENTER_X', cast=int), config('CHARACTER_CENTER_Y', cast=int)))
+        rotated_rect = rotated_image.get_rect(
+            center=(config('CHARACTER_CENTER_X', cast=int), config('CHARACTER_CENTER_Y', cast=int))
+        )
         self.prev_angle = new_angle
 
         pygame.event.get()
@@ -135,4 +137,3 @@ class Character:
         for segment_words_line in segment_words_lines:
             text_renders.append(self.font.render(segment_words_line, True, (255, 255, 0)))
         return text_renders
-

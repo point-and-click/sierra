@@ -4,6 +4,7 @@ _set_graphics_mode = 'm'
 nl = '\n'
 tab = '\t'
 
+
 def color(hex_value):
     return _control_sequence(
         f'38;2;{int(hex_value[0:2], 16)};{int(hex_value[2:4], 16)};{int(hex_value[4:6], 16)};20',

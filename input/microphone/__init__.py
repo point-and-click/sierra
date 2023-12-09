@@ -1,3 +1,4 @@
+import asyncio
 import time
 import wave
 
@@ -12,22 +13,30 @@ from utils.logging import log
 
 
 class InputController:
-    def __init__(self):
-        self.config = InputConfig()
+    def __init__(self, settings, interface, stream, recording, listener):
+        self.settings = settings
+        self.interface = interface
+        self.stream = stream
+        self.recording = recording
+        self.listener = listener
 
-        self.interface = pyaudio.PyAudio()
-        self.stream = self.interface.open(channels=self.config.audio.channels,
-                                          rate=self.config.audio.fs,
-                                          format=self.config.audio.sample_format,
-                                          frames_per_buffer=self.config.audio.chunk,
-                                          input=True)
+    @classmethod
+    async def create(cls):
+        settings = InputSettings()
 
-        self.recording = self._Status()
+        interface = pyaudio.PyAudio()
+        stream = interface.open(channels=settings.audio.channels,
+                                rate=settings.audio.fs,
+                                format=settings.audio.sample_format,
+                                frames_per_buffer=settings.audio.chunk,
+                                input=True)
 
-        self.listener = None
+        recording = cls._Status()
+
+        listener = keyboard.Listener(on_press=cls.on_press, on_release=cls.on_release)
+        return InputController(settings, interface, stream, recording, listener)
 
     def record(self, filename):
-        self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
 
         frames = []
@@ -37,16 +46,16 @@ class InputController:
             time.sleep(0.1)
 
         while self.recording.status:
-            data = self.stream.read(self.config.audio.chunk, exception_on_overflow=False)
+            data = self.stream.read(self.settings.audio.chunk, exception_on_overflow=False)
             frames.append(data)
 
         self.stream.stop_stream()
         self.listener.stop()
 
         wf = wave.open(filename, 'wb')
-        wf.setnchannels(self.config.audio.channels)
-        wf.setsampwidth(self.interface.get_sample_size(self.config.audio.sample_format))
-        wf.setframerate(self.config.audio.fs)
+        wf.setnchannels(self.settings.audio.channels)
+        wf.setsampwidth(self.interface.get_sample_size(self.settings.audio.sample_format))
+        wf.setframerate(self.settings.audio.fs)
         wf.writeframes(b''.join(frames))
         wf.close()
 
@@ -59,9 +68,9 @@ class InputController:
             case _:
                 number = None
 
-        if number in self.config.binds.keys() and not self.recording:
+        if number in self.settings.binds.keys() and not self.recording:
             self.recording.status = True
-            self.recording.character = self.config.binds.get(number).character
+            self.recording.character = self.settings.binds.get(number).character
             log.info('input.py: Recording Started')
 
     def on_release(self, key):
@@ -73,13 +82,13 @@ class InputController:
             case _:
                 number = None
 
-        if number in self.config.binds.keys() and self.recording:
+        if number in self.settings.binds.keys() and self.recording:
             self.recording.status = False
             log.info('input.py: Recording Stopped')
 
     def collect(self):
         while True:
-            log.info(f'\ninput.py: Press binds to record.')
+            log.info('\ninput.py: Press binds to record.')
             self.record('temp/input.wav')
             prompt = Whisper.transcribe('temp/input.wav')["text"]
 
@@ -92,7 +101,7 @@ class InputController:
             self.character = None
 
 
-class InputConfig:
+class InputSettings:
     def __init__(self):
         with open('config.yaml', 'r') as file:
             self._raw = safe_load(file)
@@ -100,6 +109,10 @@ class InputConfig:
         self.binds = {bind.vk: bind for bind in [Bind(bind) for bind in self._raw.get('binds', [])]}
 
 
-if __name__ == "__main__":
-    microphone_input = InputController()
+async def collect():
+    microphone_input = await InputController.create()
     microphone_input.collect()
+
+
+if __name__ == "__main__":
+    asyncio.run(collect())
