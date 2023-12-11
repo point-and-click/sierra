@@ -3,21 +3,22 @@ import time
 from datetime import datetime
 
 import pygame
-from decouple import config
 
-from ai.eleven import Eleven
+from ai.elevenlabs import Eleven
 from ai.open_ai import ChatGPT
-from ai.play_ht import PlayHt
 
 from sessions.rules import Rule
+from settings import settings
 from utils.audio_player import AudioPlayer
 from utils.logging import log
-from utils.word_wrap import WordWrap
+from utils.format import split_string_by_length
 
 
 class Character:
-    def __init__(self, yaml):
+    def __init__(self, glob, yaml):
+        self.path = glob
         self.name = yaml.get('name', None)
+
         self.chat_model_override = yaml.get('chat_model_override', None)
         self.motivation = yaml.get('motivation', None)
         self.rules = yaml.get('rules', None)
@@ -59,7 +60,7 @@ class Character:
         log.info(f'Character ({self.name}): {response}')
 
         audio_file = None
-        if config('ENABLE_SPEECH', cast=bool):
+        if settings.speech.enabled:
             audio_file = self.synthesize_speech(response)
         else:
             log.info('Speech synthesis is disabled. Skipping.')
@@ -67,10 +68,11 @@ class Character:
         return response, usage, audio_file
 
     def synthesize_speech(self, text):
-        tts_service = config('TTS_SERVICE')
+        tts_service = 'ElevenLabs'
         log.info(f'{tts_service}: Speech synthesis requested')
         if tts_service == 'PlayHT':
-            audio_file = PlayHt.fetch_audio_file(text, self.voice)
+            pass
+            # audio_file = PlayHt.fetch_audio_file(text, self.voice)
         elif tts_service == 'ElevenLabs':
             audio_file = Eleven.speak(text, self.voice)
         else:
@@ -79,8 +81,8 @@ class Character:
         return audio_file
 
     async def speak(self, ai_output, playback, screen):
-        self.font = pygame.font.Font(config('SUBTITLE_FONT'), config('SUBTITLE_FONT_SIZE', cast=int))
-        self.font.set_bold(config('SUBTITLE_FONT_BOLD', cast=bool))
+        self.font = pygame.font.Font(settings.subtitles.font.name, settings.subtitles.font.size)
+        self.font.set_bold(settings.subtitles.font.bold)
 
         with (AudioPlayer(ai_output) as audio_player):
             text_renders = self.create_text_renders(ai_output.subtitles, 0)
@@ -122,7 +124,7 @@ class Character:
         new_angle = max(-self.max_angle, min(self.max_angle, actual_rotation_amount + self.prev_angle))
         rotated_image = pygame.transform.rotate(self.image, new_angle)
         rotated_rect = rotated_image.get_rect(
-            center=(config('CHARACTER_CENTER_X', cast=int), config('CHARACTER_CENTER_Y', cast=int))
+            center=(settings.image.x, settings.image.y)
         )
         self.prev_angle = new_angle
 
@@ -131,8 +133,7 @@ class Character:
 
     def create_text_renders(self, text, segment_num):
         segment_words = text["segments"][segment_num]["text"]
-        segment_words_lines = WordWrap.split_string_by_length(segment_words,
-                                                              config('SUBTITLE_MAX_CHARS_PER_LINE', cast=int))
+        segment_words_lines = split_string_by_length(segment_words, settings.subtitles.max)
         text_renders = []
         for segment_words_line in segment_words_lines:
             text_renders.append(self.font.render(segment_words_line, True, (255, 255, 0)))

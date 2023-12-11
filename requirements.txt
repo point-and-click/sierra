@@ -1,8 +1,7 @@
 # Sierra
-audioread
 flask
 pyaudio
-pygame
+pyglet
 pyyaml
 requests
 

@@ -6,14 +6,13 @@ from datetime import datetime
 from threading import Thread
 
 import pygame
-from decouple import config
 from pynput import keyboard
 
-from ai import open_ai
 from ai.open_ai import ChatGPT, MessageRole
 from ai.output import AiOutput
 from play import characters, tasks
 from sessions.history import History
+from settings import settings
 from utils.logging import log
 from utils.logging.format import nl, tab
 
@@ -33,13 +32,18 @@ class Session:
     def __init__(self):
         if not self._initialized:
             self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            self.characters = {character_name: characters.get(character_name) for character_name in
-                               config('CHARACTERS').split(',')}
 
-            self.task = tasks.get(config('TASK'))
+            self.characters = {
+                character_name: characters.get(character_name) for character_name in settings.characters
+            }
+            self.tasks = {
+                task_name: tasks.get(task_name) for task_name in settings.tasks
+            }
 
             self.user_rules = []
             self.history = []
+            self.summary = None
+
             self.output_queue = queue.Queue()
             self.input_queue = queue.Queue()
 
@@ -114,8 +118,9 @@ class Session:
             {"role": MessageRole.SYSTEM.value,
              "content": 'You will be playing the part of multiple characters. Respond as the character described.'},
             {"role": MessageRole.USER.value,
-             "content": f'{self.task.description} {character.motivation} {character.rules}'},
-            *[{"role": entry.role, "content": entry.content} for entry in self.history],
+             "content": f'{self.tasks[0].description} {character.motivation} {character.rules}'},
+            {"role": self.summary.role, "content": self.summary.content},
+            *[{"role": entry.role, "content": entry.content} for entry in self.history[-settings.history.max:]],
             {"role": MessageRole.USER.value,
              "content": f'{" ".join([rule.text for rule in character.user_rules])} {prompt}'}
         ]
@@ -124,49 +129,24 @@ class Session:
         if audio_file is not None:
             self.output_queue.put(AiOutput(character, audio_file))
 
-        if config('OPENAI_CHAT_COMPLETION_REMOVE_FORMAT', cast=bool):
-            response = response.replace('\n', '')
-
-        open_ai.TOKENS += usage.get("total_tokens")
-
         self.response_word_count += len(response.split())
 
-        if self.task.summary.user:
+        if self.tasks[0].summary.user:
             self.history.append(History(MessageRole.USER.value, prompt))
-        if self.task.summary.assistant:
+        if self.tasks[0].summary.assistant:
             self.history.append(History(MessageRole.ASSISTANT.value, response))
 
-        self.post_process(usage)
+        self.post_process()
 
     def pre_process(self):
         for character in self.characters.values():
             character.user_rules = [rule for rule in character.user_rules if rule.expiration_time > datetime.now()]
             log.info(f'Rules:\n{(nl + tab).join([rule.text for rule in character.user_rules])}')
 
-    def post_process(self, usage):
+    def post_process(self):
         history_word_count = sum([len(entry.content.split()) for entry in self.history])
 
-        if config('DEBUG_USAGE', cast=bool):
-            log.info(
-                f'Usage: OpenAI'
-                f'\n\tPrompt: '
-                f'{usage.get("prompt_tokens")} tokens'
-                f'\n\tCompletion: '
-                f'{usage.get("completion_tokens")} tokens'
-                f'\n\tTotal: '
-                f'{usage.get("total_tokens")} tokens'
-                f'\n\tSession: '
-                f'{open_ai.TOKENS} tokens'
-            )
-            log.info(
-                f'Usage: ElevenLabs'
-                f'\n\tSummary: '
-                f'{history_word_count} words / {config("OPENAI_CHAT_COMPLETION_MAX_WORD_COUNT", cast=int)} words'
-                f'\n\tSession: '
-                f'{self.response_word_count} words'
-            )
-
-        if history_word_count > config("OPENAI_CHAT_COMPLETION_MAX_WORD_COUNT", cast=int):
+        if history_word_count > settings.summary.max_words:
             self.summarize()
 
         self.save()
@@ -177,13 +157,14 @@ class Session:
 
         messages = [
             *[{"role": entry.role, "content": entry.content} for entry in self.history],
-            {"role": "system", "content": self.task.summary.description}
+            {"role": "system", "content": self.tasks[0].summary.description}
         ]
 
         summary, usage = ChatGPT.chat(messages)
-        log.info(f'OpenAI: Summary: {summary}')
+        self.summary = History(MessageRole.ASSISTANT.value, summary)
+        log.info(f'OpenAI: Summary: {self.summary}')
 
-        if config("REVIEW_SUMMARY", cast=bool):
+        if settings.summary.review:
             self.listener = keyboard.Listener(on_press=self.on_press)
             self.listener.start()
 
@@ -196,9 +177,6 @@ class Session:
             if self.declined_summary:
                 log.info('Summary declined.')
                 return False
-
-        self.history = ([History(MessageRole.ASSISTANT.value, summary)]
-                        + self.history[-config('PRESERVE_HISTORY_LINES', cast=int):])
 
         log.info('Summary accepted.')
         return True

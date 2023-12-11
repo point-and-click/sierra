@@ -13,28 +13,19 @@ from utils.logging import log
 
 
 class InputController:
-    def __init__(self, settings, interface, stream, recording, listener):
-        self.settings = settings
-        self.interface = interface
-        self.stream = stream
-        self.recording = recording
-        self.listener = listener
+    def __init__(self):
+        self.settings = InputSettings()
 
-    @classmethod
-    async def create(cls):
-        settings = InputSettings()
+        self.interface = pyaudio.PyAudio()
+        self.stream = self.interface.open(channels=self.settings.audio.channels,
+                                          rate=self.settings.audio.fs,
+                                          format=self.settings.audio.sample_format,
+                                          frames_per_buffer=self.settings.audio.chunk,
+                                          input=True)
 
-        interface = pyaudio.PyAudio()
-        stream = interface.open(channels=settings.audio.channels,
-                                rate=settings.audio.fs,
-                                format=settings.audio.sample_format,
-                                frames_per_buffer=settings.audio.chunk,
-                                input=True)
+        self.recording = self._Status()
 
-        recording = cls._Status()
-
-        listener = keyboard.Listener(on_press=cls.on_press, on_release=cls.on_release)
-        return InputController(settings, interface, stream, recording, listener)
+        self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
 
     def record(self, filename):
         self.listener.start()
@@ -59,7 +50,7 @@ class InputController:
         wf.writeframes(b''.join(frames))
         wf.close()
 
-    def on_press(self, key):
+    def on_press(self, key: keyboard.Key | keyboard.KeyCode):
         match type(key):
             case keyboard.Key:
                 number = key.value.vk
@@ -68,12 +59,12 @@ class InputController:
             case _:
                 number = None
 
-        if number in self.settings.binds.keys() and not self.recording:
+        if number in self.settings.binds.keys() and not self.recording.status:
             self.recording.status = True
             self.recording.character = self.settings.binds.get(number).character
             log.info('input.py: Recording Started')
 
-    def on_release(self, key):
+    def on_release(self, key: keyboard.Key | keyboard.KeyCode):
         match type(key):
             case keyboard.Key:
                 number = key.value.vk
@@ -82,7 +73,7 @@ class InputController:
             case _:
                 number = None
 
-        if number in self.settings.binds.keys() and self.recording:
+        if number in self.settings.binds.keys() and self.recording.status:
             self.recording.status = False
             log.info('input.py: Recording Stopped')
 
@@ -103,14 +94,14 @@ class InputController:
 
 class InputSettings:
     def __init__(self):
-        with open('config.yaml', 'r') as file:
+        with open('input/microphone/config.yaml', 'r') as file:
             self._raw = safe_load(file)
         self.audio = Audio(self._raw.get('audio', {}))
         self.binds = {bind.vk: bind for bind in [Bind(bind) for bind in self._raw.get('binds', [])]}
 
 
 async def collect():
-    microphone_input = await InputController.create()
+    microphone_input = InputController()
     microphone_input.collect()
 
 

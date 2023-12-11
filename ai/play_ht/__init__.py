@@ -1,8 +1,9 @@
 import requests
 
-from decouple import config
-
+from settings.secrets import Secrets
 from utils.logging import log
+
+secrets = Secrets('ai/play_ht/secrets.yaml')
 
 
 class PlayHt:
@@ -12,8 +13,8 @@ class PlayHt:
 
         headers = {
             "accept": "application/json",
-            "AUTHORIZATION": f'Bearer {config("PLAY_HT_API_KEY")}',
-            "X-USER-ID": config("PLAY_HT_USER_ID")
+            "AUTHORIZATION": f'Bearer {secrets.get("api_key")}',
+            "X-USER-ID": secrets.get("user_id")
         }
 
         response = requests.get(url, headers=headers)
@@ -26,10 +27,10 @@ class PlayHt:
         url = "https://play.ht/api/v2/tts/stream"
 
         payload = {
-            "quality": config('PLAY_HT_QUALITY'),
+            "quality": settings.quality,
             "output_format": "mp3",
             "speed": 1,
-            "sample_rate": config('SAMPLE_RATE', cast=int),
+            "sample_rate": settings.sample_rate,
             "voice": voice,
             "text": text,
             "voice_engine": "PlayHT2.0-turbo",
@@ -37,8 +38,8 @@ class PlayHt:
             "temperature": 0.5
         }
         headers = {
-            "AUTHORIZATION": f'Bearer {config("PLAY_HT_API_KEY")}',
-            "X-USER-ID": config("PLAY_HT_USER_ID"),
+            "AUTHORIZATION": f'Bearer {secrets.get("api_key")}',
+            "X-USER-ID": secrets.get("user_id"),
             "accept": "audio/mpeg",
             "content-type": "application/json"
         }

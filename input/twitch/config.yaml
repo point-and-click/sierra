@@ -1,13 +1,8 @@
-broadcaster: roughcookie
-secrets:
-  app_id:
-  app_secret:
+broadcaster: soup_or_king
 emotes:
-  prefix: roughc3
+  prefix: soup4
   characters:
-  - Other
-  - B
-  - God
+  - Sierra
 events:
 - type: channel_point_redemption
   titles:
@@ -27,8 +22,8 @@ events:
 - type: follow
   tiers:
   - tier: 1
-    message: User {data.event.user_name} just followed. Say something nice about their
-      name then make fun of my channel.
+    message: 'User {data.event.user_name} just followed. Say something nice about their
+      name then make fun of my channel.'
 - type: hype_train_start
   tiers:
   - tier: 1
@@ -43,9 +38,9 @@ events:
 - type: poll_begin
   tiers:
   - tier: 1
-    message: A new poll has begun regarding {data.event.title}. Your choices are {''.join(map(str,
+    message: 'A new poll has begun regarding {data.event.title}. Your choices are {''.join(map(str,
       [choice.title for choice in data.event.choices]))}. Choose one of the options
-      and explain why.
+      and explain why.'
 - type: poll_end
   tiers:
   - tier: 1

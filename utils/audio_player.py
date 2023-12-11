@@ -1,7 +1,6 @@
 import audioread
 import numpy as np
 import pyaudio
-from decouple import config
 
 
 class AudioPlayer:
@@ -17,8 +16,8 @@ class AudioPlayer:
 
     def play_audio_chunk(self):
         stream = self.py_audio.open(format=pyaudio.paInt16,
-                                    channels=config('CHANNELS', cast=int),
-                                    rate=config('SAMPLE_RATE', cast=int),
+                                    channels=1,
+                                    rate=24000,
                                     output=True)
 
         with audioread.audio_open(self.output.audio.file_name) as f:

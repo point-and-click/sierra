@@ -2,45 +2,49 @@ import re
 
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.helper import first
+from twitchAPI.oauth import UserAuthenticationStorageHelper
 from twitchAPI.object.eventsub import (ChannelCheerEvent, ChannelPointsCustomRewardRedemptionAddEvent,
                                        ChannelSubscribeEvent, ChannelSubscriptionGiftEvent, ChannelFollowEvent,
                                        ChannelPollBeginEvent, ChannelPollEndEvent, ChannelRaidEvent, HypeTrainEvent,
                                        HypeTrainEndEvent, ChannelPredictionEvent, ChannelPredictionEndEvent)
+from twitchAPI.twitch import Twitch
 from twitchAPI.type import AuthScope
 
 from input import chat, rule
 from input.twitch.config import FunctionType
 from utils.logging import log
 
+target_scopes = [
+    AuthScope.BITS_READ,
+    AuthScope.CHANNEL_READ_REDEMPTIONS,
+    AuthScope.CHANNEL_READ_SUBSCRIPTIONS,
+    AuthScope.USER_READ_FOLLOWS,
+    AuthScope.MODERATOR_READ_FOLLOWERS,
+    AuthScope.CHANNEL_READ_POLLS,
+    AuthScope.CHANNEL_READ_PREDICTIONS,
+    AuthScope.CHANNEL_READ_HYPE_TRAIN,
+]
+
 
 class Listener:
-    def __init__(self, client, events, emotes, target_scopes, event_sub, user):
+    def __init__(self, client, helper, events, emotes, event_sub, user):
         self.client = client
+        self.helper = helper
         self.events = events
         self.emotes = emotes
-        self.target_scopes = target_scopes
         self.event_sub = event_sub
         self.user = user
 
     @classmethod
-    async def create(cls, client, events, emotes):
-        target_scopes = [
-            AuthScope.BITS_READ,
-            AuthScope.CHANNEL_READ_REDEMPTIONS,
-            AuthScope.CHANNEL_READ_SUBSCRIPTIONS,
-            AuthScope.USER_READ_FOLLOWS,
-            AuthScope.MODERATOR_READ_FOLLOWERS,
-            AuthScope.CHANNEL_READ_POLLS,
-            AuthScope.CHANNEL_READ_PREDICTIONS,
-            AuthScope.CHANNEL_READ_HYPE_TRAIN,
-            AuthScope.CHAT_READ,
-            AuthScope.CHAT_EDIT
-        ]
+    async def create(cls, secrets, events, emotes):
+        client = await Twitch(secrets.app_id, secrets.app_secret)
+        helper = UserAuthenticationStorageHelper(client, target_scopes)
+        await helper.bind()
 
         event_sub = EventSubWebsocket(client)
         user = await first(client.get_users())
 
-        return Listener(client, events, emotes, target_scopes, event_sub, user)
+        return Listener(client, helper, events, emotes, event_sub, user)
 
     async def start(self):
         self.event_sub.start()

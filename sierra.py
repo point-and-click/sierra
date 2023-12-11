@@ -4,16 +4,9 @@ import sys
 from threading import Thread
 from glob import glob
 
-import elevenlabs
-import openai
-from decouple import config
-
 from input import sierra
 from sessions.session import Session
 from utils.logging import log
-
-openai.api_key = config('OPENAI_API_KEY')
-elevenlabs.set_api_key(config('ELEVENLABS_API_KEY'))
 
 
 def service():

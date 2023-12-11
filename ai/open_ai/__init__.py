@@ -2,11 +2,14 @@ from enum import Enum
 
 import openai
 import whisper
-from decouple import config
 
+from settings.secrets import Secrets
 from utils.logging import log
 
 TOKENS = 0
+
+secrets = Secrets('ai/open_ai/secrets.yaml')
+openai.api_key = secrets.get('api_key')
 
 
 class MessageRole(Enum):
@@ -23,14 +26,14 @@ class ChatGPT:
         if chat_model_override is not None:
             model = chat_model_override
         else:
-            model = config('OPENAI_CHAT_COMPLETION_MODEL')
+            model = settings.model
 
         try:
             completion = openai.ChatCompletion.create(model=model,
                                                       messages=messages,
-                                                      max_tokens=config('OPENAI_CHAT_COMPLETION_MAX_TOKENS', cast=int))
+                                                      max_tokens=settings.max_tokens)
 
-        except openai.error.TryAgain as err:
+        except openai._errors.TryAgain as err:
             log.error(err)
             return
         except openai.error.Timeout as err:
