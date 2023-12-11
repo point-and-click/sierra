@@ -21,6 +21,16 @@ class Emotes:
         self.characters = emotes.get('characters', [])
 
 
+class Replies:
+    def __init__(self, replies):
+        self.items = [self._Reply(reply) for reply in replies]
+
+    class _Reply:
+        def __init__(self, reply):
+            self.pattern = reply.get('pattern')
+            self.response = reply.get('response')
+
+
 class Events:
     def __init__(self, events):
         self.map = {}

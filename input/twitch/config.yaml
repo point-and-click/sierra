@@ -3,6 +3,9 @@ emotes:
   prefix: soup4
   characters:
   - Sierra
+replies:
+  - pattern: p[o0óöőôõøō]*p
+    response: 'Poop!!'
 events:
 - type: channel_point_redemption
   titles:

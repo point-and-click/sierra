@@ -4,7 +4,7 @@ from enum import Enum
 from yaml import safe_load
 
 from input.twitch.bots import Bot
-from input.twitch.config import Events, Emotes, Secrets
+from input.twitch.config import Events, Emotes, Secrets, Replies
 from input.twitch.listeners import Listener
 
 
@@ -48,6 +48,7 @@ class InputSettings:
         self.bot = yaml.get('bot', {})
         self.listener = yaml.get('listener', {})
         self.emotes = Emotes(yaml.get('emotes'))
+        self.replies = Replies(yaml.get('replies'))
         self.events = Events(yaml.get('events'))
 
 
