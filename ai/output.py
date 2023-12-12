@@ -1,18 +1,18 @@
 from datetime import datetime
 
-from ai.open_ai import Whisper
+import ai
 from play import Character
+from settings import sierra_settings as settings
 
 
-class AiOutput:
-
+class Output:
     def __init__(self, character: Character, audio_file):
         self.character = character
-        self.audio = OutputAudio(audio_file)
-        self.subtitles = Whisper.transcribe(self.audio.file_name)
+        self.audio = SpeakOutput(audio_file)
+        self.subtitles = ai.modules.get(settings.transcribe.module).Transcribe.transcribe(self.audio.file_name)
 
 
-class OutputAudio:
+class SpeakOutput:
     def __init__(self, file_bytes):
         self.file_bytes = file_bytes
         self.file_name = f'temp/{datetime.now().strftime("%Y-%m-%d %H-%M-%S+%f")}.mp3'

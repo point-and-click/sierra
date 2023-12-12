@@ -5,12 +5,12 @@ from threading import Thread
 from glob import glob
 
 from input import sierra
-from sessions.session import Session
+from sessions import Session
 from utils.logging import log
 
 
 def service():
-    asyncio.run(session.process())
+    asyncio.run(session.gather())
 
 
 def api():

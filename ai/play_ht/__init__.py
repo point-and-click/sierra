@@ -1,12 +1,11 @@
 import requests
 
 from settings.secrets import Secrets
+from settings.settings import Settings
 from utils.logging import log
 
-secrets = Secrets('ai/play_ht/secrets.yaml')
 
-
-class PlayHt:
+class Speak:
     @staticmethod
     def fetch_voices():
         url = "https://play.ht/api/v2/cloned-voices"
@@ -27,10 +26,10 @@ class PlayHt:
         url = "https://play.ht/api/v2/tts/stream"
 
         payload = {
-            "quality": settings.quality,
+            "quality": settings.get('quality'),
             "output_format": "mp3",
             "speed": 1,
-            "sample_rate": settings.sample_rate,
+            "sample_rate": settings.get('sample_rate'),
             "voice": voice,
             "text": text,
             "voice_engine": "PlayHT2.0-turbo",
@@ -76,5 +75,5 @@ class CustomException(Exception):
         self.errors = errors
 
 
-if __name__ == '__main__':
-    PlayHt.fetch_voices()
+secrets = Secrets('ai/play_ht/secrets.yaml')
+settings = Settings('ai/play_ht/settings.yaml')

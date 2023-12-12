@@ -1,7 +1,7 @@
 from yaml import safe_load
 
 
-class Settings:
+class SierraSettings:
     def __init__(self, file_name):
         with open(file_name, 'r') as file:
             yaml = safe_load(file)
@@ -11,13 +11,16 @@ class Settings:
         self.history = self._HistorySettings(yaml.get('history'))
         self.summary = self._SummarySettings(yaml.get('summary'))
         self.subtitles = self._SubtitleSettings(yaml.get('subtitles'))
-        self.image = self._ImageSettings(yaml.get('image'))
+        self.ui = self._UserInterfaceSettings(yaml.get('ui'))
 
-    # TODO: Get rid of this.
-    class _ImageSettings:
-        def __init__(self, image_settings):
-            self.x = image_settings.get('x')
-            self.y = image_settings.get('y')
+    class _UserInterfaceSettings:
+        def __init__(self, ui_settings):
+            chroma_key = ui_settings.get('chroma_key')
+            self.chroma_key = (
+                chroma_key.get('r'),
+                chroma_key.get('g'),
+                chroma_key.get('b')
+            )
 
     class _HistorySettings:
         def __init__(self, history_settings):
@@ -40,4 +43,4 @@ class Settings:
                 self.bold = font_settings.get('bold')
 
 
-settings = Settings('sierra.yaml')
+sierra_settings = SierraSettings('sierra.yaml')

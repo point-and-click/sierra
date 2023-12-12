@@ -1,7 +1,7 @@
 from yaml import safe_load
 
 
-class Secrets:
+class Settings:
     def __init__(self, file_name):
         with open(file_name, 'r') as file:
             yaml = safe_load(file)

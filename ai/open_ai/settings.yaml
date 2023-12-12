@@ -1,1 +1,9 @@
-model:
+items:
+  - key: whisper_model
+    value: base
+  - key: chat.model
+    value:
+  - key: chat.tokens
+    value: 10
+  - key: transcribe.model
+    value: base

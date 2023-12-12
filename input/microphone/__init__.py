@@ -7,8 +7,9 @@ import requests
 from pynput import keyboard
 from yaml import safe_load
 
-from ai.open_ai import Whisper
+import ai
 from input.microphone.config import Bind, Audio
+from settings import sierra_settings as settings
 from utils.logging import log
 
 
@@ -81,7 +82,7 @@ class InputController:
         while True:
             log.info('\ninput.py: Press binds to record.')
             self.record('temp/input.wav')
-            prompt = Whisper.transcribe('temp/input.wav')["text"]
+            prompt = ai.modules.get(settings.transcribe.module).Transcribe.transcribe('temp/input.wav')["text"]
 
             requests.post("http://localhost:8008/", json={"message": prompt, "character": self.recording.character})
             log.info(f'Whisper: Transcribed: {prompt}')

@@ -1,15 +1,15 @@
 import requests
 from flask import request
 
-from ai.input import AiInput
+from ai.input import Input
 from input import sierra
-from sessions.session import Session
+from sessions import Session
 
 
 @sierra.route("/chat", methods=["POST"])
 def receive():
     session = Session()
-    session.input_queue.put(AiInput(request.json))
+    session.input_queue.put(Input(request.json))
     return "Good job!", 200
 
 

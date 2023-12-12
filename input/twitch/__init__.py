@@ -23,7 +23,7 @@ class InputController:
     async def create(cls):
         settings = InputSettings()
 
-        bot = await Bot.create(settings.secrets.get(ClientType.BOT), settings.broadcaster)
+        bot = await Bot.create(settings.secrets.get(ClientType.BOT), settings.broadcaster, settings.replies)
         listener = await Listener.create(settings.secrets.get(ClientType.LISTENER), settings.events, settings.emotes)
 
         return InputController(settings, bot, listener)

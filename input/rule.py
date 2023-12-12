@@ -4,7 +4,7 @@ import requests
 from flask import request
 
 from input import sierra
-from sessions.session import Session
+from sessions import Session
 
 
 @sierra.route("/rule", methods=["POST"])

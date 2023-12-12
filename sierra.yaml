@@ -17,27 +17,8 @@ subtitles:
     name: beep
     size: 42
     bold: true
-image:
-  x: 1695
-  y: 875
-
-
-
-
-
-
-
-
-
-
-
-open_ai:
-  chat:
-    model: gpt-3.5-turbo
-    max_tokens: 250
-  whisper:
-    model: base
-elevenlabs:
-play_ht:
-  user_id:
-  quality: medium
+ui:
+  chroma_key:
+    r: 0
+    g: 255
+    b: 0

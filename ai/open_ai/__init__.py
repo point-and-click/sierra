@@ -1,73 +1,78 @@
-from enum import Enum
-
 import openai
+# noinspection PyPackageRequirements
 import whisper
+from openai import (
+    APIError,
+    OpenAIError,
+    ConflictError,
+    NotFoundError,
+    APIStatusError,
+    RateLimitError,
+    APITimeoutError,
+    BadRequestError,
+    APIConnectionError,
+    AuthenticationError,
+    InternalServerError,
+    PermissionDeniedError,
+    UnprocessableEntityError,
+    APIResponseValidationError
+)
 
+import ai
 from settings.secrets import Secrets
+from settings.settings import Settings
+from settings import sierra_settings
 from utils.logging import log
 
-TOKENS = 0
 
-secrets = Secrets('ai/open_ai/secrets.yaml')
-openai.api_key = secrets.get('api_key')
-
-
-class MessageRole(Enum):
-    SYSTEM = 'system'
-    ASSISTANT = 'assistant'
-    USER = 'user'
-
-
-class ChatGPT:
+class Chat:
     @staticmethod
-    def chat(messages, chat_model_override=None):
+    def send(prompt, character, task, history, summary, chat_model_override=None):
+        messages = [
+            {"role": ai.Role.SYSTEM.value,
+             "content": 'You will be playing the part of multiple characters. Respond as the character described.'},
+            {"role": ai.Role.USER.value,
+             "content": f'{task.description} {character.motivation} {character.rules}'},
+            {"role": summary.role, "content": summary.content},
+            *[{"role": entry.role, "content": entry.content} for entry in history[-sierra_settings.history.max:]],
+            {"role": ai.Role.USER.value,
+             "content": f'{" ".join([rule.text for rule in character.user_rules])} {prompt}'}
+        ]
         log.info('OpenAI: Chat completion requested.')
 
         if chat_model_override is not None:
             model = chat_model_override
         else:
-            model = settings.model
+            model = settings.get('chat.model')
 
         try:
             completion = openai.ChatCompletion.create(model=model,
                                                       messages=messages,
-                                                      max_tokens=settings.max_tokens)
+                                                      max_tokens=settings.get('chat.tokens'))
 
-        except openai._errors.TryAgain as err:
-            log.error(err)
-            return
-        except openai.error.Timeout as err:
-            log.error(err)
-            ChatGPT.chat(messages)
+        except (APIError, OpenAIError, ConflictError, NotFoundError, APIStatusError, RateLimitError, APITimeoutError,
+                BadRequestError, APIConnectionError, AuthenticationError, InternalServerError, PermissionDeniedError,
+                UnprocessableEntityError, APIResponseValidationError) as error:
+            log.error(error)
             return
 
         try:
             return completion.choices[0].message.content, completion.usage
-        except IndexError as err:
-            log.warning(err)
+        except IndexError as error:
+            log.warning(error)
             return
 
+
+class Transcribe:
     @staticmethod
-    def fine_tune(json_file_path):
-        file = openai.File.create(
-            file=open(json_file_path, "rb"),
-            purpose='fine-tune'
-        )
-
-        job = openai.FineTune.create(training_file=file.openai_id, model="gpt-3.5-turbo")
-
-        log.info(job)
-
-    @staticmethod
-    def list_jobs():
-        response = openai.FineTune.list(limit=10)
-        log.info(response)
-
-
-class Whisper:
-    @staticmethod
-    def transcribe(audio_file):
+    def send(audio_file):
         log.info('Whisper: Transcribing recorded audio.')
-        model = whisper.load_model(config('OPENAI_WHISPER_MODEL'))
+        model = whisper.load_model(settings.get('transcribe.model'))
         result = model.transcribe(audio_file, fp16=False, word_timestamps=True)
         return result
+
+
+secrets = Secrets('ai/open_ai/secrets.yaml')
+settings = Settings('ai/open_ai/settings.yaml')
+
+openai.api_key = secrets.get('api_key')
