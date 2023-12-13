@@ -1,12 +1,13 @@
 import requests
-from flask import request
+from flask import request, Blueprint
 
 from ai.input import Input
-from input import sierra
 from sessions import Session
 
+chats = Blueprint('chat', __name__)
 
-@sierra.route("/chat", methods=["POST"])
+
+@chats.route("/chat", methods=["POST"])
 def receive():
     session = Session()
     session.input_queue.put(Input(request.json))

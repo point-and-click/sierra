@@ -1,10 +1,16 @@
 characters:
   - Sierra
+  - Pajama Sam
 tasks:
-  - Point and Click Adventure Game
-chat_service: ai.text.open_ai.ChatGPT
-enable_speech: false
-speech_service: ai.audio.play_ht.PlayHT
+  - Help
+chat:
+  module: open_ai
+speech:
+  enabled: true
+  module: elevenlabs
+visual:
+  enabled: true
+  chroma_key: 0,255,0
 preserve_history_lines: 4
 summary:
   max_words: 1200

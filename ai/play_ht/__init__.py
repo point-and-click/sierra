@@ -22,7 +22,7 @@ class Speak:
         return response.text
 
     @staticmethod
-    def fetch_audio_file(text, voice):
+    def send(text, voice):
         url = "https://play.ht/api/v2/tts/stream"
 
         payload = {

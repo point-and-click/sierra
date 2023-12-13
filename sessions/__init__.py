@@ -10,14 +10,12 @@ from pynput import keyboard
 import ai
 import windows
 from ai.output import Output
-from play import characters, tasks
+from play import Play
+from play.rules import RuleType
 from sessions.history import History
 from settings import sierra_settings as settings
 from utils.logging import log
 from utils.logging.format import nl, tab
-
-ACCEPT_SUMMARY_BINDING = keyboard.Key.ctrl_r
-DECLINE_SUMMARY_BINDING = keyboard.Key.shift_r
 
 
 class Session:
@@ -33,14 +31,17 @@ class Session:
         if not self._initialized:
             self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+            self.ui = windows.Manager()
+
+            available_characters = Play.characters()
             self.characters = {
-                character_name: characters.get(character_name) for character_name in settings.characters
+                character_name: available_characters.get(character_name) for character_name in settings.characters
             }
+            available_tasks = Play.tasks()
             self.tasks = {
-                task_name: tasks.get(task_name) for task_name in settings.tasks
+                task_name: available_tasks.get(task_name) for task_name in settings.tasks
             }
 
-            self.user_rules = []
             self.history = []
             self.summary = None
 
@@ -50,10 +51,7 @@ class Session:
             self.response_word_count = 0
 
             self.playback = Playback()
-            self.ui = windows.Manager()
-            self.listener = None
-            self.accepted_summary = False
-            self.declined_summary = False
+
             self._initialized = True
 
     def __enter__(self):
@@ -123,8 +121,10 @@ class Session:
 
     def pre_process(self):
         for character in self.characters.values():
-            character.user_rules = [rule for rule in character.user_rules if rule.expiration_time > datetime.now()]
-            log.info(f'Rules:\n{(nl + tab).join([rule.text for rule in character.user_rules])}')
+            character.rules[RuleType.TEMPORARY] = [
+                rule for rule in character.rules[RuleType.TEMPORARY] if rule.expiration_time > datetime.now()
+            ]
+            log.info(f'Rules:\n{(nl + tab).join([rule.text for rule in character.rules[RuleType.TEMPORARY]])}')
 
     def post_process(self):
         history_word_count = sum([len(entry.content.split()) for entry in self.history])
@@ -135,8 +135,6 @@ class Session:
         self.save()
 
     def summarize(self):
-        self.accepted_summary = False
-        self.declined_summary = False
 
         messages = [
             *[{"role": entry.role, "content": entry.content} for entry in self.history],
@@ -147,29 +145,10 @@ class Session:
         self.summary = History(ai.Role.ASSISTANT.value, summary)
         log.info(f'OpenAI: Summary: {self.summary}')
 
-        if settings.summary.review:
-            self.listener = keyboard.Listener(on_press=self.on_press)
-            self.listener.start()
-
-            log.info('Waiting to accept summary.')
-            while not self.accepted_summary and not self.declined_summary:
-                pass
-
-            self.listener.stop()
-
-            if self.declined_summary:
-                log.info('Summary declined.')
-                return False
-
-        log.info('Summary accepted.')
         return True
 
     def on_press(self, key):
-        if key == ACCEPT_SUMMARY_BINDING:
-            self.accepted_summary = True
-        elif key == DECLINE_SUMMARY_BINDING:
-            self.declined_summary = True
-        elif key == keyboard.Key.right and self.playback.paused:
+        if key == keyboard.Key.right and self.playback.paused:
             self.playback.paused = False
             log.info('Unpaused')
         elif key == keyboard.Key.left and not self.playback.paused:

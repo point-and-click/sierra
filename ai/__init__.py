@@ -1,7 +1,13 @@
 from enum import Enum
-from importlib.util import spec_from_file_location, module_from_spec
+from importlib import import_module
 from glob import glob
 from os.path import isdir
+
+
+class Function(Enum):
+    CHAT = "Chat"
+    SPEAK = "Speak"
+    TRANSCRIBE = "Transcribe"
 
 
 class Role(Enum):
@@ -13,6 +19,8 @@ class Role(Enum):
 modules = {}
 for ai_glob in glob("ai/*"):
     if isdir(ai_glob):
-        spec = spec_from_file_location(ai_glob.split('/')[-1], f'{ai_glob}/__init__.py')
-        module = module_from_spec(spec)
-        modules[ai_glob.split('/')[-1]] = module
+        modules[ai_glob.split('/')[-1]] = import_module(ai_glob.replace('/', '.'))
+
+
+def load(name, function):
+    return getattr(modules.get(name), function.value)

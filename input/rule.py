@@ -1,20 +1,21 @@
 import json
 
 import requests
-from flask import request
+from flask import request, Blueprint
 
-from input import sierra
 from sessions import Session
 
+rules = Blueprint('rule', __name__)
 
-@sierra.route("/rule", methods=["POST"])
+
+@rules.route("/rule", methods=["POST"])
 def rule_receive():
     session = Session()
     session.characters.get(request.json.get('character')).add_rule(request.json)
     return "Good job!", 200
 
 
-@sierra.route("/rule", methods=["GET"])
+@rules.route("/rule", methods=["GET"])
 def rule_list():
     session = Session()
     return json.dumps(session.user_rules.rules), 200

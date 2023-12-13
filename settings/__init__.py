@@ -8,10 +8,23 @@ class SierraSettings:
 
         self.characters = yaml.get('characters')
         self.tasks = yaml.get('tasks')
+        self.chat = self._ChatSettings(yaml.get('chat'))
+        self.speech = self._SpeechSettings(yaml.get('speech'))
         self.history = self._HistorySettings(yaml.get('history'))
         self.summary = self._SummarySettings(yaml.get('summary'))
         self.subtitles = self._SubtitleSettings(yaml.get('subtitles'))
         self.ui = self._UserInterfaceSettings(yaml.get('ui'))
+
+    class _ChatSettings:
+        def __init__(self, chat_settings):
+            self.model = chat_settings.get('model')
+            self.module = chat_settings.get('module')
+
+    class _SpeechSettings:
+        def __init__(self, speech_settings):
+            self.enabled = speech_settings.get('enabled')
+            self.model = speech_settings.get('model')
+            self.module = speech_settings.get('module')
 
     class _UserInterfaceSettings:
         def __init__(self, ui_settings):

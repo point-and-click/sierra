@@ -3,11 +3,11 @@ import time
 import wave
 
 import pyaudio
-import requests
 from pynput import keyboard
 from yaml import safe_load
 
 import ai
+from input import chat
 from input.microphone.config import Bind, Audio
 from settings import sierra_settings as settings
 from utils.logging import log
@@ -84,7 +84,7 @@ class InputController:
             self.record('temp/input.wav')
             prompt = ai.modules.get(settings.transcribe.module).Transcribe.transcribe('temp/input.wav')["text"]
 
-            requests.post("http://localhost:8008/", json={"message": prompt, "character": self.recording.character})
+            chat.submit(prompt, self.recording.character)
             log.info(f'Whisper: Transcribed: {prompt}')
 
     class _Status:
