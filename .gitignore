@@ -160,7 +160,7 @@ cython_debug/
 .idea/
 
 # Custom
-*.wav
+temp/*
 *.sierra
 **/secrets.yaml
 **/user_token.json

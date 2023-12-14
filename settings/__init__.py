@@ -25,6 +25,8 @@ class SierraSettings:
             self.enabled = speech_settings.get('enabled')
             self.model = speech_settings.get('model')
             self.module = speech_settings.get('module')
+            self.sample_rate = speech_settings.get('sample_rate')
+            self.chunk_size = speech_settings.get('chunk_size')
 
     class _UserInterfaceSettings:
         def __init__(self, ui_settings):
@@ -41,6 +43,8 @@ class SierraSettings:
 
     class _SummarySettings:
         def __init__(self, summary_settings):
+            self.user = summary_settings.get('user')
+            self.assistant = summary_settings.get('assistant')
             self.max_words = summary_settings.get('max_words')
             self.review = summary_settings.get('review')
 

@@ -3,7 +3,6 @@ import time
 import ai
 from play.rules import Rule, RuleType
 from settings import sierra_settings as settings
-from utils.audio_player import AudioPlayer
 from utils.logging import log
 from windows.character import CharacterWindow
 
@@ -14,8 +13,8 @@ class Character:
         self.task = None
 
         self.motivation = yaml.get('motivation', None)
-        self.rules = {RuleType.PERMANENT: yaml.get('rules', None), RuleType.TEMPORARY: []}
-        self.voice = yaml.get('voice', None)
+        self.rules = {RuleType.PERMANENT: yaml.get('rules', []), RuleType.TEMPORARY: []}
+        self.voice = yaml.get('speech', {}).get('voice', None)
 
         self.overrides = yaml.get('overrides', None)
 
@@ -33,39 +32,35 @@ class Character:
         self.motivation = state.get('motivation', None)
         self.rules = state.get('rules', None)
         self.voice = state.get('voice', None)
-        self.user_rules = state.get('user_rules', [])
+        self.rules = state.get('rules', [])
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        for key in ['image', 'font']:
+        for key in ['image', 'window']:
             del state[key]
         return state
 
     def assign_task(self, task):
         self.task = task
 
-    def add_rule(self, rule):
-        self.user_rules.append(Rule(rule))
+    def add_rule(self, rule_type, rule):
+        self.rules[rule_type].append(Rule(rule))
 
-    def chat(self, prompt, summary, history):
+    def serialize_rules(self, rule_type):
+        return ''.join([f'{rule.text} ' for rule in self.rules.get(rule_type)])
+
+    def converse(self, prompt, summary, history):
         response = self.chat_ai.send(prompt, self, self.task, history, summary,)
 
         log.info(f'Character ({self.name}): {response}')
 
-        audio_file = None
         if settings.speech.enabled:
-            audio_file = self.speak_ai.send(response, self.voice)
+            audio_bytes = self.speak_ai.send(response, self.voice)
+            return response, audio_bytes
         else:
             log.info('Speech synthesis is disabled. Skipping.')
+            return response, None, None
 
-        return response, audio_file
-
-    async def speak(self, ai_output, playback):
-        self.window.hidden = False
+    async def respond(self, ai_output):
         log.info(f'Character ({self.name}) speaking')
-        with (AudioPlayer(ai_output) as audio_player):
-
-            for _ in audio_player.play_audio_chunk():
-                while playback.paused:
-                    time.sleep(1)
-        self.window.hidden = True
+        self.window.play(ai_output.audio)

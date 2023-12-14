@@ -32,5 +32,19 @@ class Log:
 
         logging.info(message)
 
+    @staticmethod
+    def warning(message):
+        for pattern, replacement in replacements.items():
+            message = re.sub(pattern, replacement, message)
+
+        logging.warning(message)
+
+    @staticmethod
+    def error(message):
+        for pattern, replacement in replacements.items():
+            message = re.sub(pattern, replacement, message)
+
+        logging.error(message)
+
 
 log = Log()

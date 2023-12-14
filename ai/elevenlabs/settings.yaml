@@ -1,0 +1,7 @@
+items:
+  - key: voice.model
+    value: eleven_multilingual_v2
+  - key: voice.output_format
+    value: mp3_44100_64
+  - key: voice.output_file_type
+    value: mp3

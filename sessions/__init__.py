@@ -5,15 +5,14 @@ import sys
 from datetime import datetime
 from threading import Thread
 
-from pynput import keyboard
-
 import ai
 import windows
 from ai.output import Output
 from play import Play
 from play.rules import RuleType
-from sessions.history import History
+from sessions.history import Moment
 from settings import sierra_settings as settings
+
 from utils.logging import log
 from utils.logging.format import nl, tab
 
@@ -31,7 +30,7 @@ class Session:
         if not self._initialized:
             self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-            self.ui = windows.Manager()
+            self.windows = windows.Manager()
 
             available_characters = Play.characters()
             self.characters = {
@@ -42,6 +41,10 @@ class Session:
                 task_name: available_tasks.get(task_name) for task_name in settings.tasks
             }
 
+            # TODO: Rethink assigning tasks to characters
+            for character in self.characters.values():
+                character.assign_task(list(self.tasks.values())[0])
+
             self.history = []
             self.summary = None
 
@@ -49,8 +52,6 @@ class Session:
             self.input_queue = queue.Queue()
 
             self.response_word_count = 0
-
-            self.playback = Playback()
 
             self._initialized = True
 
@@ -62,7 +63,7 @@ class Session:
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        for key in ['listener', 'input_queue', 'output_queue', 'screen']:
+        for key in ['input_queue', 'output_queue', 'windows']:
             del state[key]
         return state
 
@@ -91,12 +92,10 @@ class Session:
     async def process_output(self):
         while True:
             if not self.output_queue.empty():
-                await self.play(self.output_queue.get())
+                output = self.output_queue.get()
+                await output.character.respond(output)
             else:
                 await asyncio.sleep(0.1)
-
-    async def play(self, output):
-        await output.character.speak(output, self.playback)
 
     def get_chat_response(self, ai_input):
         self.pre_process()
@@ -105,17 +104,17 @@ class Session:
         prompt = ai_input.message
         character = self.characters[ai_input.character]
 
-        response, audio_file = character.chat(prompt, self.tasks, self.summary, self.history)
+        response, audio_bytes = character.converse(prompt, self.summary, self.history)
 
-        if audio_file is not None:
-            self.output_queue.put(Output(character, audio_file))
+        if audio_bytes is not None:
+            self.output_queue.put(Output(character, audio_bytes))
 
         self.response_word_count += len(response.split())
 
-        if self.tasks[0].summary.user:
-            self.history.append(History(ai.Role.USER.value, prompt))
-        if self.tasks[0].summary.assistant:
-            self.history.append(History(ai.Role.ASSISTANT.value, response))
+        if settings.summary.user:
+            self.history.append(Moment(ai.Role.USER.value, prompt))
+        if settings.summary.assistant:
+            self.history.append(Moment(ai.Role.ASSISTANT.value, response))
 
         self.post_process()
 
@@ -142,18 +141,10 @@ class Session:
         ]
 
         summary = ai.modules.get(settings.chat.module).Chat.send(messages)
-        self.summary = History(ai.Role.ASSISTANT.value, summary)
+        self.summary = Moment(ai.Role.ASSISTANT.value, summary)
         log.info(f'OpenAI: Summary: {self.summary}')
 
         return True
-
-    def on_press(self, key):
-        if key == keyboard.Key.right and self.playback.paused:
-            self.playback.paused = False
-            log.info('Unpaused')
-        elif key == keyboard.Key.left and not self.playback.paused:
-            self.playback.paused = True
-            log.info('Paused')
 
     def save(self):
         pickle.dump(self, open(f'saves/{self.name}.sierra', 'wb'))
@@ -164,17 +155,12 @@ class Session:
         for character in self.characters.values():
             log.info(
                 f'''Loaded rules for ({character.name}):\n\t{f"{nl}{tab}".join(
-                    [repr(entry) for entry in character.user_rules])}'''
+                    [repr(entry) for entry in character.rules])}'''
             )
         self.history = obj.history
         log.info(
             f'Loaded history:\n\t{f"{nl}{tab}".join([repr(entry) for entry in self.history])}'
         )
-
-
-class Playback:
-    def __init__(self):
-        self.paused = False
 
 
 def input_target(session: Session, ai_input):

@@ -8,11 +8,15 @@ chat:
 speech:
   enabled: true
   module: elevenlabs
+  sample_rate: 16000
+  chunk_size: 1024
 visual:
   enabled: true
   chroma_key: 0,255,0
 preserve_history_lines: 4
 summary:
+  assistant: true
+  user: true
   max_words: 1200
   review: true
 history:

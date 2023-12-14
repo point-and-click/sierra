@@ -1,19 +1,9 @@
 # Sierra
 flask
-pyaudio
 pyglet
 pyyaml
 requests
-
-# AI Services
-elevenlabs
-openai
-openai-whisper
-
-# Input Services
-numpy
-pynput
-twitchAPI
+python-vlc
 
 # Development
 flake8

@@ -11,6 +11,8 @@ class CharacterWindow(Window):
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
         self.character = character
         self.image = pyglet.resource.image(f'{character.path}/{character.image}')
+        self.audio = None
+        self.player = None
         self.hidden = True
 
         @self.window.event
@@ -18,3 +20,16 @@ class CharacterWindow(Window):
             self.window.clear()
             if not self.hidden:
                 self.image.blit(0, 0)
+
+    def on_eos(self):
+        self.hidden = True
+
+    def play(self, audio):
+        self.audio = pyglet.media.load(audio.path, streaming=False)
+
+        self.player = pyglet.media.Player()
+        self.player.on_eos = self.on_eos
+        self.player.queue(self.audio)
+
+        self.hidden = False
+        self.player.play()

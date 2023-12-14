@@ -48,4 +48,4 @@ if __name__ == '__main__':
 
         Service().start()
         API().start()
-        session.ui.start()
+        session.windows.start()
