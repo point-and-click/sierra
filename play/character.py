@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import ai
@@ -12,7 +13,7 @@ class Character:
         self.name = yaml.get('name', None)
         self.task = None
 
-        self.motivation = yaml.get('motivation', None)
+        self.motivation = yaml.get('chat', {}).get('motivation', None)
         self.rules = {RuleType.PERMANENT: yaml.get('rules', []), RuleType.TEMPORARY: []}
         self.voice = yaml.get('speech', {}).get('voice', None)
 
@@ -63,4 +64,8 @@ class Character:
 
     async def respond(self, ai_output):
         log.info(f'Character ({self.name}) speaking')
-        self.window.play(ai_output.audio)
+        audio_task = asyncio.create_task(self.window.play(ai_output.audio))
+        subtitle_task = asyncio.create_task(self.window.manager.subtitles.play(ai_output.subtitles.get('segments')))
+        # animate_task = asyncio.create_task(self.window.animate('something'))
+
+        await asyncio.gather(audio_task, subtitle_task)

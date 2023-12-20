@@ -37,8 +37,7 @@ class Chat:
     @staticmethod
     def send(prompt, character, task, history, summary, chat_model_override=None):
         messages = [
-            {"role": ai.Role.SYSTEM.value,
-             "content": 'You will be playing the part of multiple characters. Respond as the character described.'}
+            {"role": ai.Role.SYSTEM.value, "content": character.motivation}
         ]
         if summary:
             messages.append(
@@ -47,7 +46,7 @@ class Chat:
         if task and character:
             messages.append(
                 {"role": ai.Role.USER.value,
-                 "content": f'{task.description} {character.motivation} {character.serialize_rules(RuleType.PERMANENT)}'}
+                 "content": f'{task.description} {character.serialize_rules(RuleType.PERMANENT)}'}
             )
         if len(history) > 0:
             messages.extend(
@@ -84,8 +83,8 @@ class Chat:
 
 class Transcribe:
     @staticmethod
-    def send(audio_file):
+    def send(audio_bytes):
         log.info('Whisper: Transcribing recorded audio.')
         model = whisper.load_model(settings.get('transcribe.model'))
-        result = model.transcribe(audio_file, fp16=False, word_timestamps=True)
+        result = model.transcribe(audio_bytes, fp16=False, word_timestamps=True)
         return result

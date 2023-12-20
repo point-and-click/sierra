@@ -10,6 +10,7 @@ class SierraSettings:
         self.tasks = yaml.get('tasks')
         self.chat = self._ChatSettings(yaml.get('chat'))
         self.speech = self._SpeechSettings(yaml.get('speech'))
+        self.transcribe = self._TranscribeSettings(yaml.get('transcribe'))
         self.history = self._HistorySettings(yaml.get('history'))
         self.summary = self._SummarySettings(yaml.get('summary'))
         self.subtitles = self._SubtitleSettings(yaml.get('subtitles'))
@@ -27,6 +28,11 @@ class SierraSettings:
             self.module = speech_settings.get('module')
             self.sample_rate = speech_settings.get('sample_rate')
             self.chunk_size = speech_settings.get('chunk_size')
+
+    class _TranscribeSettings:
+        def __init__(self, transcribe_settings):
+            self.model = transcribe_settings.get('model')
+            self.module = transcribe_settings.get('module')
 
     class _UserInterfaceSettings:
         def __init__(self, ui_settings):

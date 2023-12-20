@@ -39,13 +39,14 @@ class Manager:
 
     def __init__(self):
         if not self._initialized:
-            self.windows = {}
+            self.characters = {}
+            self.subtitles = None
 
             self._initialized = True
 
     def start(self):
-        log.info(f'Starting Visual (x{len(self.windows.keys())}) ...')
+        log.info(f'Starting Visual (x{len(self.characters.keys())}) ...')
         pyglet.app.run()
 
     def register(self, window: Window):
-        self.windows[window.name] = window
+        self.characters[window.name] = window

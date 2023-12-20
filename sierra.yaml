@@ -10,6 +10,9 @@ speech:
   module: elevenlabs
   sample_rate: 16000
   chunk_size: 1024
+transcribe:
+  module: open_ai
+  model: base
 visual:
   enabled: true
   chroma_key: 0,255,0

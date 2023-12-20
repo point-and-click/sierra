@@ -1,3 +1,5 @@
+import asyncio
+
 import pyglet
 
 from windows import Window
@@ -24,7 +26,7 @@ class CharacterWindow(Window):
     def on_eos(self):
         self.hidden = True
 
-    def play(self, audio):
+    async def play(self, audio):
         self.audio = pyglet.media.load(audio.path, streaming=False)
 
         self.player = pyglet.media.Player()
@@ -32,4 +34,10 @@ class CharacterWindow(Window):
         self.player.queue(self.audio)
 
         self.hidden = False
+        self.player.play()
+
+    async def pause(self):
+        self.player.pause()
+
+    async def resume(self):
         self.player.play()

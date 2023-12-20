@@ -6,7 +6,7 @@ from datetime import datetime
 from threading import Thread
 
 import ai
-import windows
+
 from ai.output import Output
 from play import Play
 from play.rules import RuleType
@@ -15,6 +15,8 @@ from settings import sierra_settings as settings
 
 from utils.logging import log
 from utils.logging.format import nl, tab
+from windows import Manager
+from windows.subtitles import SubtitlesWindow
 
 
 class Session:
@@ -30,7 +32,8 @@ class Session:
         if not self._initialized:
             self.name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-            self.windows = windows.Manager()
+            self.windows = Manager()
+            self.windows.subtitles = SubtitlesWindow()
 
             available_characters = Play.characters()
             self.characters = {
