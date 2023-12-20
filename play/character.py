@@ -1,5 +1,4 @@
 import asyncio
-import time
 
 import ai
 from play.rules import Rule, RuleType
@@ -64,8 +63,7 @@ class Character:
 
     async def respond(self, ai_output):
         log.info(f'Character ({self.name}) speaking')
-        audio_task = asyncio.create_task(self.window.play(ai_output.audio))
+        character_task = asyncio.create_task(self.window.speak(ai_output.audio))
         subtitle_task = asyncio.create_task(self.window.manager.subtitles.play(ai_output.subtitles.get('segments')))
-        # animate_task = asyncio.create_task(self.window.animate('something'))
 
-        await asyncio.gather(audio_task, subtitle_task)
+        await asyncio.gather(character_task, subtitle_task)

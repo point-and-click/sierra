@@ -1,8 +1,13 @@
-import asyncio
+import time
 
 import pyglet
+from audioread import audio_open
+from numpy import frombuffer, abs, max, int16
+from pyaudio import PyAudio, paInt16
 
+from settings import sierra_settings
 from windows import Window
+from windows.animation.rotate import RotateAnimation
 
 
 class CharacterWindow(Window):
@@ -13,31 +18,37 @@ class CharacterWindow(Window):
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
         self.character = character
         self.image = pyglet.resource.image(f'{character.path}/{character.image}')
-        self.audio = None
-        self.player = None
+        self.animation = RotateAnimation(sierra_settings.visual.animation)
+        self._angle = 0
         self.hidden = True
+
+        self.paused = False
 
         @self.window.event
         def on_draw():
             self.window.clear()
             if not self.hidden:
-                self.image.blit(0, 0)
+                self.image.blit(0, 0, rotation=self._angle)
 
-    def on_eos(self):
-        self.hidden = True
+    async def speak(self, audio):
+        for amplitude in self._play_audio_chunk(audio):
+            while self.paused:
+                time.sleep(1)
+            self._angle = self.animation.render(amplitude)
+        self._angle = 0
 
-    async def play(self, audio):
-        self.audio = pyglet.media.load(audio.path, streaming=False)
+    def _play_audio_chunk(self, audio):
+        stream = PyAudio().open(
+            format=paInt16,
+            channels=sierra_settings.speech.channels,
+            rate=sierra_settings.speech.sample_rate,
+            output=True
+        )
 
-        self.player = pyglet.media.Player()
-        self.player.on_eos = self.on_eos
-        self.player.queue(self.audio)
-
-        self.hidden = False
-        self.player.play()
-
-    async def pause(self):
-        self.player.pause()
-
-    async def resume(self):
-        self.player.play()
+        with audio_open(audio.path) as audio_file:
+            self.hidden = False
+            for buffer in audio_file:
+                audio_array = frombuffer(buffer, dtype=int16)
+                stream.write(audio_array.tobytes())
+                yield max(abs(audio_array))
+            self.hidden = True

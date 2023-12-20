@@ -16,7 +16,14 @@ transcribe:
 visual:
   enabled: true
   chroma_key: 0,255,0
-preserve_history_lines: 4
+  animation:
+    angle_max: 35
+  subtitles:
+    max: 65
+    font:
+      name: beep
+      size: 42
+      bold: true
 summary:
   assistant: true
   user: true
@@ -24,14 +31,4 @@ summary:
   review: true
 history:
   max: 20
-subtitles:
-  max: 65
-  font:
-    name: beep
-    size: 42
-    bold: true
-ui:
-  chroma_key:
-    r: 0
-    g: 255
-    b: 0
+  preserve_lines: 4

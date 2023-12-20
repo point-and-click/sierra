@@ -11,10 +11,9 @@ class SierraSettings:
         self.chat = self._ChatSettings(yaml.get('chat'))
         self.speech = self._SpeechSettings(yaml.get('speech'))
         self.transcribe = self._TranscribeSettings(yaml.get('transcribe'))
+        self.visual = self._VisualSettings(yaml.get('visual'))
         self.history = self._HistorySettings(yaml.get('history'))
         self.summary = self._SummarySettings(yaml.get('summary'))
-        self.subtitles = self._SubtitleSettings(yaml.get('subtitles'))
-        self.ui = self._UserInterfaceSettings(yaml.get('ui'))
 
     class _ChatSettings:
         def __init__(self, chat_settings):
@@ -34,14 +33,26 @@ class SierraSettings:
             self.model = transcribe_settings.get('model')
             self.module = transcribe_settings.get('module')
 
-    class _UserInterfaceSettings:
-        def __init__(self, ui_settings):
-            chroma_key = ui_settings.get('chroma_key')
-            self.chroma_key = (
-                chroma_key.get('r'),
-                chroma_key.get('g'),
-                chroma_key.get('b')
-            )
+    class _VisualSettings:
+        def __init__(self, visual_settings):
+            self.enabled = visual_settings.get('enabled')
+            self.animation = self._AnimationSettings(visual_settings.get('animation'))
+            self.subtitles = self._SubtitleSettings(visual_settings.get('subtitles'))
+
+        class _AnimationSettings:
+            def __init__(self, animation_settings):
+                self.angle_max = animation_settings.get('angle_max')
+
+        class _SubtitleSettings:
+            def __init__(self, subtitle_settings):
+                self.max = subtitle_settings.get('max')
+                self.font = self._FontSettings(subtitle_settings.get('font'))
+
+            class _FontSettings:
+                def __init__(self, font_settings):
+                    self.name = font_settings.get('name')
+                    self.size = font_settings.get('size')
+                    self.bold = font_settings.get('bold')
 
     class _HistorySettings:
         def __init__(self, history_settings):
@@ -53,17 +64,6 @@ class SierraSettings:
             self.assistant = summary_settings.get('assistant')
             self.max_words = summary_settings.get('max_words')
             self.review = summary_settings.get('review')
-
-    class _SubtitleSettings:
-        def __init__(self, subtitle_settings):
-            self.max = subtitle_settings.get('max')
-            self.font = self._FontSettings(subtitle_settings.get('font'))
-
-        class _FontSettings:
-            def __init__(self, font_settings):
-                self.name = font_settings.get('name')
-                self.size = font_settings.get('size')
-                self.bold = font_settings.get('bold')
 
 
 sierra_settings = SierraSettings('sierra.yaml')

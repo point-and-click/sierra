@@ -1,9 +1,11 @@
 # Sierra
+audioread
 flask
+numpy
+pyaudio
 pyglet
 pyyaml
 requests
-python-vlc
 
 # Development
 flake8
