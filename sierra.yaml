@@ -8,8 +8,9 @@ chat:
 speech:
   enabled: true
   module: elevenlabs
-  sample_rate: 16000
-  chunk_size: 1024
+  channels: 1
+  sample_rate: 44100
+  chunk_size: 4098
 transcribe:
   module: open_ai
   model: base
@@ -17,7 +18,7 @@ visual:
   enabled: true
   chroma_key: 0,255,0
   animation:
-    angle_max: 35
+    angle_max: 10
   subtitles:
     max: 65
     font:

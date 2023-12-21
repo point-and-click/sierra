@@ -39,7 +39,7 @@ class SubtitlesWindow(Window):
 
         segments_start = datetime.now()
         while self.current_segment < len(self.segments):
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.01)
             if self.segments[self.current_segment].complete(segments_start, datetime.now()):
                 self.current_segment += 1
 

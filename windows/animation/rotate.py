@@ -5,7 +5,6 @@ class RotateAnimation(Animation):
     def __init__(self, animation_settings):
         super().__init__(animation_settings)
         self.angle_max = self._settings.angle_max
-        self.rotation_max = self._settings.rotation_max
 
         self._amplitude_max = 0
         self._previous = 0

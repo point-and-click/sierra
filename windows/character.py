@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import pyglet
@@ -17,7 +18,8 @@ class CharacterWindow(Window):
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
         self.character = character
-        self.image = pyglet.resource.image(f'{character.path}/{character.image}')
+        self._image = pyglet.resource.image(f'{character.path}/{character.image}')
+        self.sprite = pyglet.sprite.Sprite(self._image)
         self.animation = RotateAnimation(sierra_settings.visual.animation)
         self._angle = 0
         self.hidden = True
@@ -28,13 +30,15 @@ class CharacterWindow(Window):
         def on_draw():
             self.window.clear()
             if not self.hidden:
-                self.image.blit(0, 0, rotation=self._angle)
+                self.sprite.rotation = self._angle
+                self.sprite.draw()
 
     async def speak(self, audio):
         for amplitude in self._play_audio_chunk(audio):
             while self.paused:
-                time.sleep(1)
+                time.sleep(0.1)
             self._angle = self.animation.render(amplitude)
+            await asyncio.sleep(0.01)
         self._angle = 0
 
     def _play_audio_chunk(self, audio):

@@ -25,6 +25,7 @@ class SierraSettings:
             self.enabled = speech_settings.get('enabled')
             self.model = speech_settings.get('model')
             self.module = speech_settings.get('module')
+            self.channels = speech_settings.get('channels')
             self.sample_rate = speech_settings.get('sample_rate')
             self.chunk_size = speech_settings.get('chunk_size')
 
