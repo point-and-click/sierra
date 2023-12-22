@@ -1,11 +1,11 @@
-elevenlabs
-flake8
-openai
-openai-whisper
-pyaudio
-pynput
-python-decouple
-pyyaml
-flask
-
+# Sierra
 audioread
+flask
+numpy
+pyaudio
+pyglet
+pyyaml
+requests
+
+# Development
+flake8

@@ -4,26 +4,37 @@ import sys
 from threading import Thread
 from glob import glob
 
-import elevenlabs
-import openai
-from decouple import config
-
-from input import app
-from sessions.session import Session
+from input import sierra
+from sessions import Session
 from utils.logging import log
 
-openai.api_key = config('OPENAI_API_KEY')
-elevenlabs.set_api_key(config('ELEVENLABS_API_KEY'))
+
+class Service:
+    def __init__(self):
+        self.thread = Thread(target=Service.thread)
+
+    @staticmethod
+    def thread():
+        log.info('Starting Session ...')
+        asyncio.run(session.gather())
+
+    def start(self):
+        self.thread.start()
 
 
-def service():
-    asyncio.run(session.process())
+class API:
+    def __init__(self):
+        self.thread = Thread(target=API.thread)
 
+    @staticmethod
+    def thread():
+        log.info('Starting API ...')
+        sys.modules['flask.cli'].show_server_banner = lambda *x: None
+        logging.getLogger("werkzeug").setLevel(logging.ERROR)
+        sierra.run(port=8008)
 
-def api():
-    sys.modules['flask.cli'].show_server_banner = lambda *x: None
-    logging.getLogger("werkzeug").setLevel(logging.ERROR)
-    app.run(port=8008)
+    def start(self):
+        self.thread.start()
 
 
 if __name__ == '__main__':
@@ -35,9 +46,6 @@ if __name__ == '__main__':
                 index = int(input('Load save: '))
                 session.load(saves[index])
 
-        log.info('Running Sierra')
-
-        service_thread = Thread(target=service)
-        service_thread.start()
-        api_thread = Thread(target=api)
-        api_thread.start()
+        Service().start()
+        API().start()
+        session.windows.start()

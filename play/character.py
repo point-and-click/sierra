@@ -1,34 +1,30 @@
-import os
-import time
-from datetime import datetime
+import asyncio
 
-import pygame
-from decouple import config
-
-from ai.eleven import Eleven
-from ai.open_ai import ChatGPT
-from ai.play_ht import PlayHt
-
-from sessions.rules import Rule
-from utils.audio_player import AudioPlayer
+import ai
+from play.rules import Rule, RuleType
+from settings import sierra_settings as settings
 from utils.logging import log
-from utils.word_wrap import WordWrap
+from windows.character import CharacterWindow
 
 
 class Character:
-    def __init__(self, yaml):
+    def __init__(self, glob, yaml):
         self.name = yaml.get('name', None)
-        self.chat_model_override = yaml.get('chat_model_override', None)
-        self.motivation = yaml.get('motivation', None)
-        self.rules = yaml.get('rules', None)
-        self.voice = yaml.get('voice', None)
-        self.user_rules = []
-        self.max_angle = 35
-        self.max_rotation = 3
-        self.max_amplitude = 1000
-        self.prev_angle = 0
-        self.image = None
-        self.font = None
+        self.task = None
+
+        self.motivation = yaml.get('chat', {}).get('motivation', None)
+        self.rules = {RuleType.PERMANENT: yaml.get('rules', []), RuleType.TEMPORARY: []}
+        self.voice = yaml.get('speech', {}).get('voice', None)
+
+        self.overrides = yaml.get('overrides', None)
+
+        self.chat_ai = ai.load(settings.chat.module, ai.Function.CHAT)()
+        self.speak_ai = ai.load(settings.speech.module, ai.Function.SPEAK)()
+
+        self.path = glob
+        self.image = yaml.get('visual', None).get('image', None)
+
+        self.window = CharacterWindow(self)
 
     def __setstate__(self, state):
         self.name = state.get('name', None)
@@ -36,103 +32,38 @@ class Character:
         self.motivation = state.get('motivation', None)
         self.rules = state.get('rules', None)
         self.voice = state.get('voice', None)
-        self.user_rules = state.get('user_rules', [])
-        self.max_angle = 35
-        self.max_rotation = 3
-        self.max_amplitude = 1000
-        self.prev_angle = 0
-        self.font = None
-        self.image = None
+        self.rules = state.get('rules', [])
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        for key in ['image', 'font']:
+        for key in ['image', 'window']:
             del state[key]
         return state
 
-    def add_rule(self, rule):
-        self.user_rules.append(Rule(rule))
+    def assign_task(self, task):
+        self.task = task
 
-    def chat(self, messages):
-        response, usage = ChatGPT.chat(messages, self.chat_model_override)
+    def add_rule(self, rule_type, rule):
+        self.rules[rule_type].append(Rule(rule))
+
+    def serialize_rules(self, rule_type):
+        return ''.join([f'{rule.text} ' for rule in self.rules.get(rule_type)])
+
+    def converse(self, prompt, summary, history):
+        response = self.chat_ai.send(prompt, self, self.task, history, summary,)
 
         log.info(f'Character ({self.name}): {response}')
 
-        audio_file = None
-        if config('ENABLE_SPEECH', cast=bool):
-            audio_file = self.synthesize_speech(response)
+        if settings.speech.enabled:
+            audio_bytes = self.speak_ai.send(response, self.voice)
+            return response, audio_bytes
         else:
             log.info('Speech synthesis is disabled. Skipping.')
+            return response, None, None
 
-        return response, usage, audio_file
+    async def respond(self, ai_output):
+        log.info(f'Character ({self.name}) speaking')
+        character_task = asyncio.create_task(self.window.speak(ai_output.audio))
+        subtitle_task = asyncio.create_task(self.window.manager.subtitles.play(ai_output.subtitles.get('segments')))
 
-    def synthesize_speech(self, text):
-        tts_service = config('TTS_SERVICE')
-        log.info(f'{tts_service}: Speech synthesis requested')
-        if tts_service == 'PlayHT':
-            audio_file = PlayHt.fetch_audio_file(text, self.voice)
-        elif tts_service == 'ElevenLabs':
-            audio_file = Eleven.speak(text, self.voice)
-        else:
-            audio_file = None
-
-        return audio_file
-
-    async def speak(self, ai_output, playback, screen):
-        self.font = pygame.font.Font(config('SUBTITLE_FONT'), config('SUBTITLE_FONT_SIZE', cast=int))
-        self.font.set_bold(config('SUBTITLE_FONT_BOLD', cast=bool))
-
-        with (AudioPlayer(ai_output) as audio_player):
-            text_renders = self.create_text_renders(ai_output.subtitles, 0)
-
-            start_time = datetime.now()
-            segment = 0
-            for amplitude in audio_player.play_audio_chunk():
-                while playback.paused:
-                    time.sleep(1)
-                screen.fill((0, 255, 0))
-                self.animate_frame(amplitude, screen)
-                if len(ai_output.subtitles["segments"]) > segment + 1 and \
-                        ai_output.subtitles["segments"][segment + 1]["words"][0]["end"] < (
-                        datetime.now() - start_time).total_seconds():
-                    segment = segment + 1
-                    text_renders = self.create_text_renders(ai_output.subtitles, segment)
-                text_offset = 0
-                for text_render in text_renders:
-                    text_rect = text_render.get_rect(center=((1920 // 2), 975 + text_offset))
-                    screen.blit(text_render, text_rect)
-                    text_offset += self.font.get_height() + 2
-
-                pygame.display.update()
-        screen.fill((0, 255, 0))
-        pygame.display.update()
-
-    def animate_frame(self, amplitude, screen):
-        if self.image is None:
-            file_name = f"config/characters/images/{self.name}.png"
-            if os.path.isfile(file_name):
-                self.image = pygame.image.load(file_name).convert_alpha()
-        if amplitude > self.max_amplitude:
-            self.max_amplitude = amplitude
-
-        scaled_amplitude = min(amplitude, self.max_amplitude) / self.max_amplitude
-        target_angle = scaled_amplitude * self.max_angle
-        target_rotation_amount = target_angle - self.prev_angle
-        actual_rotation_amount = max(-self.max_rotation, min(self.max_rotation, target_rotation_amount))
-        new_angle = max(-self.max_angle, min(self.max_angle, actual_rotation_amount + self.prev_angle))
-        rotated_image = pygame.transform.rotate(self.image, new_angle)
-        rotated_rect = rotated_image.get_rect(center=(config('CHARACTER_CENTER_X', cast=int), config('CHARACTER_CENTER_Y', cast=int)))
-        self.prev_angle = new_angle
-
-        pygame.event.get()
-        screen.blit(rotated_image, rotated_rect)
-
-    def create_text_renders(self, text, segment_num):
-        segment_words = text["segments"][segment_num]["text"]
-        segment_words_lines = WordWrap.split_string_by_length(segment_words,
-                                                              config('SUBTITLE_MAX_CHARS_PER_LINE', cast=int))
-        text_renders = []
-        for segment_words_line in segment_words_lines:
-            text_renders.append(self.font.render(segment_words_line, True, (255, 255, 0)))
-        return text_renders
-
+        await asyncio.gather(character_task, subtitle_task)

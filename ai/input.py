@@ -1,4 +1,4 @@
-class AiInput:
+class Input:
 
     def __init__(self, json):
         self.character = json.get("character", None)

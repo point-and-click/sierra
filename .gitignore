@@ -160,9 +160,8 @@ cython_debug/
 .idea/
 
 # Custom
-*.wav
+temp/*
 *.sierra
+**/secrets.yaml
+**/user_token.json
 .DS_Store
-config/characters/*.yaml
-config/tasks/*.yaml
-config/characters/images/*.png

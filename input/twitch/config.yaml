@@ -1,0 +1,80 @@
+broadcaster: soup_or_king
+emotes:
+  prefix: soup4
+  characters:
+  - Sierra
+replies:
+  - pattern: p[o0óöőôõøō]*p
+    response: 'Poop!!'
+events:
+- type: channel_point_redemption
+  titles:
+  - title: Ask Chatbot A Question
+    message: '{data.event.user_name} says {message}.'
+  - title: Add a Rule
+    function: rule
+    message: Thank {data.event.user_name} for instructing you to {message}.
+- type: cheer
+  tiers:
+  - tier: 1
+    message: 'Viewer {data.event.user_name} says: {message}.'
+  - tier: 100
+    message: 'Viewer {data.event.user_name} says: {message}.'
+  - tier: 1000
+    message: 'Viewer {data.event.user_name} says: {message}.'
+- type: follow
+  tiers:
+  - tier: 1
+    message: 'User {data.event.user_name} just followed. Say something nice about their
+      name then make fun of my channel.'
+- type: hype_train_start
+  tiers:
+  - tier: 1
+    message: 'Hype train has begun with a goal of: {data.event.goal}. Exclaim you
+      have no idea what a hype train is and are confused why anyone would be hyped
+      about my channel at all.'
+- type: hype_end
+  tiers:
+  - tier: 1
+    message: 'Hype train has ended with a total of: {data.event.total}. Ask the viewers
+      how that went and let them know they can calm down now.'
+- type: poll_begin
+  tiers:
+  - tier: 1
+    message: 'A new poll has begun regarding {data.event.title}. Your choices are {''.join(map(str,
+      [choice.title for choice in data.event.choices]))}. Choose one of the options
+      and explain why.'
+- type: poll_end
+  tiers:
+  - tier: 1
+    message: 'The poll has ended. {data.event.title} Choices (and vote counts): {''''.join(map(str,
+      [f''{choice.title} ({choice.votes})'' for x in data.event.choices]))} What do
+      you think about these results?'
+- type: prediction
+  tiers:
+  - tier: 1
+    message: 'A new prediction event has begun. Title: {data.event.title}. Outcomes:
+      {''''.join(outcome.title for outcome in data.event.outcomes)} Make your prediction
+      and explain why.'
+- type: prediction_end
+  tiers:
+  - tier: 1
+    message: 'f''A prediction event has ended. Title: {data.event.title}. Outcomes:
+      {''''.join(outcome.title for outcome in data.event.outcomes)} Winner: {next((obj
+      for obj in data.event.outcomes if obj.id == data.event.winning_outcome_id),
+      None)} What do you think of this result?'
+- type: raid
+  tiers:
+  - tier: 1
+    message: 'Holy shit! We''ve just been raided by {data.event.from_broadcaster_user_id}
+      with {data.event.viewers}! Give them a sincere, emphatic "Thank you!" and explain
+      my shtick: I use an AI chatbot (you) to guide me through games and provide commentary.'
+- type: subscribe
+  tiers:
+  - tier: 1
+    message: Oh, no way! Viewer {data.event.user_name} subscribed to my channel!
+- type: subscribe_gift
+  tiers:
+  - tier: 1
+    message: Oh, wow! Viewer {data.event.user_name} gifted a subscription to my channel!
+      Say something nice about their name then trash talk my stream.

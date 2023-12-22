@@ -1,0 +1,5 @@
+items:
+  - key: quality
+    value: medium
+  - key: sample_rate
+    value: 24000
