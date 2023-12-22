@@ -17,7 +17,7 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-Run the setup script.
+Run the setup script to install dependencies from the `ai/` and `input/` modules.
 ```bash
 python setup.py install
 ```

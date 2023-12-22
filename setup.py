@@ -11,16 +11,19 @@ def install(requirements):
 
 
 if __name__ == '__main__':
-    # Install requirements for AI modules
-    for ai_glob in glob("ai/*"):
-        if isdir(ai_glob):
-            if isfile(f'{ai_glob}/requirements.txt'):
-                with open(f'{ai_glob}/requirements.txt', 'r') as requirements_file:
-                    install(requirements_file)
+    args = sys.argv[1:]
 
-    # Install requirements for input modules
-    for input_glob in glob("input/*"):
-        if isdir(input_glob):
-            if isfile(f'{input_glob}/requirements.txt'):
-                with open(f'{input_glob}/requirements.txt', 'r') as requirements_file:
-                    install(requirements_file)
+    if 'install' in args:
+        # Install requirements for AI modules
+        for ai_glob in glob("ai/*"):
+            if isdir(ai_glob):
+                if isfile(f'{ai_glob}/requirements.txt'):
+                    with open(f'{ai_glob}/requirements.txt', 'r') as requirements_file:
+                        install(requirements_file)
+
+        # Install requirements for input modules
+        for input_glob in glob("input/*"):
+            if isdir(input_glob):
+                if isfile(f'{input_glob}/requirements.txt'):
+                    with open(f'{input_glob}/requirements.txt', 'r') as requirements_file:
+                        install(requirements_file)

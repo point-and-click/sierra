@@ -1,5 +1,4 @@
 from datetime import datetime
-from enum import Enum
 
 import ai
 from play import Character

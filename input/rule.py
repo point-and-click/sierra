@@ -1,5 +1,3 @@
-import json
-
 import requests
 from flask import request, Blueprint
 

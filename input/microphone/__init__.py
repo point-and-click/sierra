@@ -27,10 +27,9 @@ class InputController:
         self.recording = self._Status()
 
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
-
-    def record(self, filename):
         self.listener.start()
 
+    def record(self, filename):
         frames = []
         self.stream.start_stream()
 
@@ -42,7 +41,6 @@ class InputController:
             frames.append(data)
 
         self.stream.stop_stream()
-        self.listener.stop()
 
         wf = wave.open(filename, 'wb')
         wf.setnchannels(self.settings.audio.channels)
@@ -82,7 +80,7 @@ class InputController:
         while True:
             log.info('\ninput.py: Press binds to record.')
             self.record('temp/input.wav')
-            prompt = ai.modules.get(settings.transcribe.module).Transcribe.transcribe('temp/input.wav')["text"]
+            prompt = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send('temp/input.wav')['text']
 
             chat.submit(prompt, self.recording.character)
             log.info(f'Whisper: Transcribed: {prompt}')

@@ -1,4 +1,5 @@
 import asyncio
+from copy import copy, deepcopy
 from datetime import datetime, timedelta
 
 import pyglet
@@ -14,6 +15,7 @@ def segment_as_label(segment):
         font_size=32,
         x=0, anchor_x='left',
         y=128, anchor_y='top',
+        multiline=True, width=1024
     )
 
 
@@ -31,7 +33,16 @@ class SubtitlesWindow(Window):
         def on_draw():
             self.window.clear()
             if self.segments:
-                segment_as_label(self.segments[self.current_segment]).draw()
+                label = segment_as_label(self.segments[self.current_segment])
+                outline = segment_as_label(self.segments[self.current_segment])
+                for dx in range(-2, 3):
+                    for dy in range(-2, 3):
+                        if abs(dx) + abs(dy) != 0:
+                            outline.x = label.x + dx
+                            outline.y = label.y + dy
+                            outline.color = (0, 0, 0, 255)
+                            outline.draw()
+                label.draw()
 
     async def play(self, segments):
         self.segments = [SubtitleSegment(segment) for segment in segments]

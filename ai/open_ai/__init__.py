@@ -1,9 +1,9 @@
 from time import sleep
 
-import openai
 # noinspection PyPackageRequirements
 import whisper
 from openai import (
+    OpenAI,
     APIError,
     OpenAIError,
     ConflictError,
@@ -17,7 +17,7 @@ from openai import (
     InternalServerError,
     PermissionDeniedError,
     UnprocessableEntityError,
-    APIResponseValidationError, OpenAI
+    APIResponseValidationError,
 )
 
 import ai
