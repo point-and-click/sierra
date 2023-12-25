@@ -1,8 +1,8 @@
 characters:
-  - Sierra
-  - Pajama Sam
+  - Michele
+  - Ray
 tasks:
-  - Help
+  - Christmas
 chat:
   module: open_ai
 speech:
@@ -16,7 +16,7 @@ transcribe:
   model: base
 visual:
   enabled: true
-  chroma_key: 0,255,0
+  chroma_key: 0,0,0
   animation:
     angle_max: 10
   subtitles:

@@ -17,7 +17,7 @@ class Play:
                     c = Character(character_glob, safe_load(character_yaml))
                     characters[c.name] = c
             except FileNotFoundError:
-                log.warn(f'Character folder contains invalid character setup: {character_glob}')
+                log.warning(f'Character folder contains invalid character setup: {character_glob}')
         return characters
 
     @staticmethod

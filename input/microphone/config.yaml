@@ -5,4 +5,6 @@ audio:
   sample_rate: 24000
 binds: # find the vk value using bind.py
 - vk: 18
-  character: Sierra
+  character: Ray
+- vk: 19
+  character: Michele

@@ -24,7 +24,7 @@ class Character:
         self.path = glob
         self.image = yaml.get('visual', None).get('image', None)
 
-        self.window = CharacterWindow(self)
+        self.window = None
 
     def __setstate__(self, state):
         self.name = state.get('name', None)
@@ -41,6 +41,7 @@ class Character:
         return state
 
     def assign_task(self, task):
+        self.window = CharacterWindow(self)
         self.task = task
 
     def add_rule(self, rule_type, rule):
