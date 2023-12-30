@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 import pyglet
 
+from settings import sierra_settings
 from windows import Window
 
 
@@ -22,7 +23,8 @@ def segment_as_label(segment):
 class SubtitlesWindow(Window):
     def __init__(self, ):
         super().__init__('Subtitles', 1024, 128)
-        pyglet.gl.glClearColor(0, 1, 0, 1)
+        red, green, blue = sierra_settings.visual.chroma_key
+        pyglet.gl.glClearColor(red, green, blue, 1)
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
 
