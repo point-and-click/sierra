@@ -14,7 +14,8 @@ from windows.animation.rotate import RotateAnimation
 class CharacterWindow(Window):
     def __init__(self, character):
         super().__init__(character.name, 512, 512)
-        pyglet.gl.glClearColor(0, 1, 0, 1)
+        red, green, blue = sierra_settings.visual.chroma_key
+        pyglet.gl.glClearColor(red, green, blue, 1)
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
         self.character = character

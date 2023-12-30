@@ -37,6 +37,7 @@ class SierraSettings:
     class _VisualSettings:
         def __init__(self, visual_settings):
             self.enabled = visual_settings.get('enabled')
+            self.chroma_key = tuple([int(v) for v in visual_settings.get('chroma_key').split(',')])
             self.animation = self._AnimationSettings(visual_settings.get('animation'))
             self.subtitles = self._SubtitleSettings(visual_settings.get('subtitles'))
 
