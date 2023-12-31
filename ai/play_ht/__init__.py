@@ -1,3 +1,5 @@
+from os import path
+
 import requests
 
 from settings.secrets import Secrets
@@ -75,5 +77,5 @@ class CustomException(Exception):
         self.errors = errors
 
 
-secrets = Secrets('ai/play_ht/secrets.yaml')
-settings = Settings('ai/play_ht/settings.yaml')
+secrets = Secrets(path.join(*__name__.split('.'), 'secrets.yaml'))
+settings = Settings(path.join(*__name__.split('.'), 'settings.yaml'))

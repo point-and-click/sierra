@@ -1,10 +1,11 @@
+from os import path
 import elevenlabs
 
 from settings.secrets import Secrets
 from settings.settings import Settings
 
-secrets = Secrets('ai/elevenlabs/secrets.yaml')
-settings = Settings('ai/elevenlabs/settings.yaml')
+secrets = Secrets(path.join(*__name__.split('.'), 'secrets.yaml'))
+settings = Settings(path.join(*__name__.split('.'), 'settings.yaml'))
 elevenlabs.set_api_key(secrets.get('api_key'))
 
 

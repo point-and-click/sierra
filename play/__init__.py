@@ -1,4 +1,5 @@
 from glob import glob
+from os import path
 
 from yaml import safe_load
 
@@ -11,9 +12,9 @@ class Play:
     @staticmethod
     def characters():
         characters = {}
-        for character_glob in glob("play/characters/*"):
+        for character_glob in glob(path.join('play', 'characters', '*')):
             try:
-                with open(f'{character_glob}/character.yaml', "r") as character_yaml:
+                with open(path.join(character_glob, 'character.yaml'), 'r') as character_yaml:
                     c = Character(character_glob, safe_load(character_yaml))
                     characters[c.name] = c
             except FileNotFoundError:
@@ -23,8 +24,8 @@ class Play:
     @staticmethod
     def tasks():
         tasks = {}
-        for task_glob in glob("play/tasks/*.yaml"):
-            with open(task_glob, "r") as task_yaml:
+        for task_glob in glob(path.join('play', 'tasks', '*.yaml')):
+            with open(task_glob, 'r') as task_yaml:
                 t = Task(safe_load(task_yaml))
                 tasks[t.name] = t
         return tasks

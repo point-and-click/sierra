@@ -1,6 +1,7 @@
 import asyncio
 import time
 import wave
+from os import path
 
 import pyaudio
 from pynput import keyboard
@@ -79,8 +80,8 @@ class InputController:
     def collect(self):
         while True:
             log.info('\ninput.py: Press binds to record.')
-            self.record('temp/input.wav')
-            prompt = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send('temp/input.wav')['text']
+            self.record(path.join(*['temp', 'input.wav']))
+            prompt = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send(path.join(*['temp', 'input.wav']))['text']
 
             chat.submit(prompt, self.recording.character)
             log.info(f'Whisper: Transcribed: {prompt}')
@@ -93,7 +94,7 @@ class InputController:
 
 class InputSettings:
     def __init__(self):
-        with open('input/microphone/config.yaml', 'r') as file:
+        with open(path.join(*__name__.split('.'), 'config.yaml'), 'r') as file:
             self._raw = safe_load(file)
         self.audio = Audio(self._raw.get('audio', {}))
         self.binds = {bind.vk: bind for bind in [Bind(bind) for bind in self._raw.get('binds', [])]}
