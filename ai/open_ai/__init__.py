@@ -1,3 +1,4 @@
+from os import path
 from time import sleep
 
 # noinspection PyPackageRequirements
@@ -27,8 +28,8 @@ from settings.settings import Settings
 from settings import sierra_settings
 from utils.logging import log
 
-secrets = Secrets('ai/open_ai/secrets.yaml')
-settings = Settings('ai/open_ai/settings.yaml')
+secrets = Secrets(path.join(*__name__.split('.'), 'secrets.yaml'))
+settings = Settings(path.join(*__name__.split('.'), 'settings.yaml'))
 
 
 class Chat:

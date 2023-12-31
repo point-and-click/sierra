@@ -1,6 +1,7 @@
 from enum import Enum
 from importlib import import_module
 from glob import glob
+from os import path
 from os.path import isdir
 
 
@@ -17,9 +18,9 @@ class Role(Enum):
 
 
 modules = {}
-for ai_glob in glob("ai/*"):
+for ai_glob in glob(path.join('ai', '*')):
     if isdir(ai_glob):
-        modules[ai_glob.split('/')[-1]] = import_module(ai_glob.replace('/', '.'))
+        modules[path.split(ai_glob)[-1]] = import_module('.'.join(path.split(ai_glob)))
 
 
 def load(name, function):

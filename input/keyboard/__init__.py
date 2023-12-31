@@ -1,4 +1,5 @@
 import asyncio
+from os import path
 
 from yaml import safe_load
 
@@ -21,7 +22,7 @@ class InputController:
 
 class InputSettings:
     def __init__(self):
-        with open('input/keyboard/config.yaml', 'r') as file:
+        with open(path.join(*__name__.split('.'), 'config.yaml'), 'r') as file:
             self._raw = safe_load(file)
         self.characters = self._raw.get('characters', [])
 
