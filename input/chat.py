@@ -3,6 +3,7 @@ from flask import request, Blueprint
 
 from ai.input import Input
 from sessions import Session
+from utils.logging import log
 
 chats = Blueprint('chat', __name__)
 
@@ -15,6 +16,7 @@ def receive():
 
 
 def submit(message, character):
+    log.info(f'Sending message to ({character}): {message}')
     requests.post("http://localhost:8008/chat",
                   json={"message": message,
                         "character": character})

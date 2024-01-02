@@ -81,7 +81,6 @@ class Chat:
             log.warning(error)
             return
 
-
 class Transcribe:
     @staticmethod
     def send(audio_bytes):

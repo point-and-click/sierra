@@ -1,0 +1,9 @@
+name: Chat
+description: >
+  You're just here to chat. Be interesting.
+
+summary:
+  user: true
+  assistant: true
+  description: >
+    Summarize the content.

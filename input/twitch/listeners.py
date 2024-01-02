@@ -106,18 +106,18 @@ class Listener:
         events = self.events.map.get('channel_point_redemption')
         event = events.get(data.event.reward.title)
 
-        match event.function:
+        match event.type:
             case FunctionType.CHAT:
                 chat.submit(
                     event.message.format(data=data, message=message),
                     character
                 )
             case FunctionType.RULE:
-                rule.submit(message, character)
-                chat.submit(
-                    event.message.format(data=data, message=message),
-                    character
-                )
+                rule.submit(message, character, 30)
+                # chat.submit(
+                #     event.message.format(data=data, message=message),
+                #     character
+                # )
 
     async def on_cheer(self, data: ChannelCheerEvent):
         character, message = process(self.emotes, data.event.message)
@@ -227,4 +227,4 @@ def process(emotes, message):
     characters = re.findall(rf'{emotes.prefix}(\S+)', message, flags=re.IGNORECASE)
     message = re.sub(rf'{emotes.prefix}(\S+)', '', message, flags=re.IGNORECASE)
 
-    return characters[0] if characters else emotes.characters[0], message
+    return emotes.characters.get(characters[0]) if characters else emotes.characters.get(emotes.default), message

@@ -37,7 +37,7 @@ class InputController:
 
 class InputSettings:
     def __init__(self):
-        with open(path.join(*[*__name__.split('.'), 'secrets.yaml']), 'r') as file:
+        with open(path.join('input', 'twitch', 'secrets.yaml'), 'r') as file:
             yaml = safe_load(file)
         self.secrets = {
             ClientType.LISTENER: Secrets(yaml.get('listener')),

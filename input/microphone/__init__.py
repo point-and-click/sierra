@@ -94,7 +94,7 @@ class InputController:
 
 class InputSettings:
     def __init__(self):
-        with open(path.join(*__name__.split('.'), 'config.yaml'), 'r') as file:
+        with open(path.join('input', 'microphone', 'config.yaml'), 'r') as file:
             self._raw = safe_load(file)
         self.audio = Audio(self._raw.get('audio', {}))
         self.binds = {bind.vk: bind for bind in [Bind(bind) for bind in self._raw.get('binds', [])]}

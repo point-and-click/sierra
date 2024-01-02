@@ -1,10 +1,20 @@
-broadcaster: soup_or_king
+broadcaster: roughcookie
 emotes:
-  prefix: soup4
+  prefix: roughc3
+  default: Other
   characters:
-  - Sierra
+    - key: Other
+      value: Other Poop
+    - key: B
+      value: B
+    - key: Flux
+      value: Man In Red Truck
+    - key: God
+      value: God
+    - key: Baby
+      value: Baby New Year
 replies:
-  - pattern: p[o0óöőôõøō]*p
+  - pattern: p
     response: 'Poop!!'
 events:
 - type: channel_point_redemption

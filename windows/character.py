@@ -1,5 +1,6 @@
 import asyncio
 import time
+from os import path
 
 import pyglet
 from audioread import audio_open
@@ -19,7 +20,7 @@ class CharacterWindow(Window):
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
         self.character = character
-        self._image = pyglet.resource.image(f'{character.path}/{character.image}')
+        self._image = pyglet.resource.image(character.path.replace("\\", "/") + '/' + character.image)
         self.sprite = pyglet.sprite.Sprite(self._image)
         self.animation = RotateAnimation(sierra_settings.visual.animation)
         self._angle = 0

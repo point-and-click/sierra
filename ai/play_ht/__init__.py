@@ -8,20 +8,6 @@ from utils.logging import log
 
 
 class Speak:
-    @staticmethod
-    def fetch_voices():
-        url = "https://play.ht/api/v2/cloned-voices"
-
-        headers = {
-            "accept": "application/json",
-            "AUTHORIZATION": f'Bearer {secrets.get("api_key")}',
-            "X-USER-ID": secrets.get("user_id")
-        }
-
-        response = requests.get(url, headers=headers)
-
-        log.info(response.text)
-        return response.text
 
     @staticmethod
     def send(text, voice):

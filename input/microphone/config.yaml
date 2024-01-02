@@ -4,5 +4,13 @@ audio:
   fs: 44100
   sample_rate: 24000
 binds: # find the vk value using bind.py
-- vk: 18
-  character: Sierra
+- vk: 96
+  character: Other Poop
+- vk: 97
+  character: B
+- vk: 98
+  character: Man In Red Truck
+- vk: 99
+  character: God
+- vk: 100
+  character: Baby New Year

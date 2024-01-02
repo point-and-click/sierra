@@ -1,7 +1,7 @@
 import asyncio
 
 import ai
-from play.rules import Rule, RuleType
+from play.rules import Rule, RuleType, TemporaryRule
 from settings import sierra_settings as settings
 from utils.logging import log
 from windows.character import CharacterWindow
@@ -17,6 +17,7 @@ class Character:
         self.voice = yaml.get('speech', {}).get('voice', None)
 
         self.overrides = yaml.get('overrides', None)
+        self.chat_model_override = yaml.get('chat_model_override', None)
 
         self.chat_ai = ai.load(settings.chat.module, ai.Function.CHAT)()
         self.speak_ai = ai.load(settings.speech.module, ai.Function.SPEAK)()
@@ -46,13 +47,17 @@ class Character:
         self.window = CharacterWindow(self)
 
     def add_rule(self, rule_type, rule):
-        self.rules[rule_type].append(Rule(rule))
+        match rule_type:
+            case RuleType.TEMPORARY:
+                self.rules[rule_type].append(TemporaryRule(rule))
+            case RuleType.PERMANENT:
+                self.rules[rule_type].append(Rule(rule))
 
     def serialize_rules(self, rule_type):
         return ''.join([f'{rule.text} ' for rule in self.rules.get(rule_type)])
 
     def converse(self, prompt, summary, history):
-        response = self.chat_ai.send(prompt, self, self.task, history, summary,)
+        response = self.chat_ai.send(prompt, self, self.task, history, summary, self.chat_model_override)
 
         log.info(f'Character ({self.name}): {response}')
 

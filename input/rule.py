@@ -3,6 +3,7 @@ from flask import request, Blueprint
 
 from play.rules import RuleType
 from sessions import Session
+from utils.logging import log
 
 rules = Blueprint('rule', __name__)
 
@@ -14,6 +15,7 @@ def rule_receive():
     return "Good job!", 200
 
 
-def submit(rule, character):
+def submit(rule, character, duration):
+    log.info(f'Sending message to ({character}): {rule}')
     requests.post("http://localhost:8008/rule",
-                  json={"rule": rule, "character": character})
+                  json={"rule": rule, "character": character, "duration": duration})

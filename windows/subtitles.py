@@ -33,18 +33,21 @@ class SubtitlesWindow(Window):
 
         @self.window.event
         def on_draw():
-            self.window.clear()
-            if self.segments:
-                label = segment_as_label(self.segments[self.current_segment])
-                outline = segment_as_label(self.segments[self.current_segment])
-                for dx in range(-2, 3):
-                    for dy in range(-2, 3):
-                        if abs(dx) + abs(dy) != 0:
-                            outline.x = label.x + dx
-                            outline.y = label.y + dy
-                            outline.color = (0, 0, 0, 255)
-                            outline.draw()
-                label.draw()
+            try:
+                self.window.clear()
+                if self.segments:
+                    label = segment_as_label(self.segments[self.current_segment])
+                    outline = segment_as_label(self.segments[self.current_segment])
+                    for dx in range(-2, 3):
+                        for dy in range(-2, 3):
+                            if abs(dx) + abs(dy) != 0:
+                                outline.x = label.x + dx
+                                outline.y = label.y + dy
+                                outline.color = (0, 0, 0, 255)
+                                outline.draw()
+                    label.draw()
+            except TypeError:
+                pass
 
     async def play(self, segments):
         self.segments = [SubtitleSegment(segment) for segment in segments]

@@ -38,7 +38,7 @@ class Bot:
     async def start(self):
         log.info('Starting chat bot')
         self.chat.register_event(ChatEvent.READY, self.on_ready)
-        self.chat.register_event(ChatEvent.MESSAGE, self.on_message)
+        # self.chat.register_event(ChatEvent.MESSAGE, self.on_message)
         for command, function in self.commands.items():
             self.chat.register_command(command, function)
         self.chat.start()
@@ -50,7 +50,7 @@ class Bot:
 
     async def on_message(self, message: ChatMessage):
         replies = [
-            (reply, found) for reply in self.replies
+            (reply, found) for reply in self.replies.items
             for found in re.findall(rf'{reply.pattern}', message.text, re.IGNORECASE)
         ]
 

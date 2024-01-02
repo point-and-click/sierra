@@ -140,7 +140,7 @@ class Session:
 
         messages = [
             *[{"role": entry.role, "content": entry.content} for entry in self.history],
-            {"role": "system", "content": self.tasks[0].summary.description}
+            {"role": "system", "content": list(self.tasks.values())[0].summary.description}
         ]
 
         summary = ai.modules.get(settings.chat.module).Chat.send(messages)
