@@ -9,7 +9,7 @@ class Output:
     def __init__(self, character: Character, audio_bytes):
         self.character = character
         self.audio = SpeakOutput(audio_bytes)
-        self.subtitles = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send(self.audio.path)
+        # self.subtitles = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send(self.audio.path)
 
 
 class SpeakOutput:
@@ -17,4 +17,6 @@ class SpeakOutput:
         self.bytes = audio_bytes
         self.path = f'temp/{datetime.now().strftime("%Y-%m-%d %H-%M-%S+%f")}'
         with open(self.path, "wb") as audio_file:
+            audio_file.write(self.bytes)
+        with open('temp/output.wav', "wb") as audio_file:
             audio_file.write(self.bytes)

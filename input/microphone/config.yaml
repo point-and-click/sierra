@@ -13,4 +13,4 @@ binds: # find the vk value using bind.py
 - vk: 99
   character: God
 - vk: 100
-  character: Baby New Year
+  character: Mickey

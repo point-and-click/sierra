@@ -11,8 +11,8 @@ emotes:
       value: Man In Red Truck
     - key: God
       value: God
-    - key: Baby
-      value: Baby New Year
+    - key: Mickey
+      value: Mickey
 replies:
   - pattern: p
     response: 'Poop!!'

@@ -1,5 +1,7 @@
 import asyncio
 
+from pynput import keyboard
+
 import ai
 from play.rules import Rule, RuleType, TemporaryRule
 from settings import sierra_settings as settings
@@ -9,6 +11,7 @@ from windows.character import CharacterWindow
 
 class Character:
     def __init__(self, glob, yaml):
+        self.play = False
         self.name = yaml.get('name', None)
         self.task = None
 
@@ -26,6 +29,8 @@ class Character:
         self.image = yaml.get('visual', None).get('image', None)
 
         self.window = None
+        self.listener = keyboard.Listener(on_release=self.on_release)
+        self.listener.start()
 
     def __setstate__(self, state):
         self.name = state.get('name', None)
@@ -70,7 +75,22 @@ class Character:
 
     async def respond(self, ai_output):
         log.info(f'Character ({self.name}) speaking')
-        character_task = asyncio.create_task(self.window.speak(ai_output.audio))
-        subtitle_task = asyncio.create_task(self.window.manager.subtitles.play(ai_output.subtitles.get('segments')))
 
-        await asyncio.gather(character_task, subtitle_task)
+        while not self.play:
+            await asyncio.sleep(0.1)
+        character_task = asyncio.create_task(self.window.speak(ai_output.audio))
+        # subtitle_task = asyncio.create_task(self.window.manager.subtitles.play(ai_output.subtitles.get('segments')))
+        self.play = False
+        await asyncio.gather(character_task)
+
+    def on_release(self, key: keyboard.Key | keyboard.KeyCode):
+        match type(key):
+            case keyboard.Key:
+                number = key.value.vk
+            case keyboard.KeyCode:
+                number = key.vk
+            case _:
+                number = None
+
+        if number == 34:
+            self.play = True

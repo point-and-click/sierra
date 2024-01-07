@@ -23,6 +23,7 @@ visual:
   animation:
     angle_max: 10
   subtitles:
+    enabled: false
     max: 65
     font:
       name: beep

@@ -21,7 +21,11 @@ class CharacterWindow(Window):
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
         self.character = character
         self._image = pyglet.resource.image(character.path.replace("\\", "/") + '/' + character.image)
+        self._image.anchor_x = self._image.width / 2
+        self._image.anchor_y = self._image.height / 2
         self.sprite = pyglet.sprite.Sprite(self._image)
+        self.sprite.x = 256
+        self.sprite.y = 256
         self.animation = RotateAnimation(sierra_settings.visual.animation)
         self._angle = 0
         self.hidden = True

@@ -150,7 +150,8 @@ class Session:
         return True
 
     def save(self):
-        pickle.dump(self, open(f'saves/{self.name}.sierra', 'wb'))
+        pass
+        # pickle.dump(self, open(f'saves/{self.name}.sierra', 'wb'))
 
     def load(self, file_name):
         obj = pickle.load(open(file_name, 'rb'))
