@@ -71,7 +71,7 @@ class Character:
             return response, audio_bytes
         else:
             log.info('Speech synthesis is disabled. Skipping.')
-            return response, None, None
+            return response, None
 
     async def respond(self, ai_output):
         log.info(f'Character ({self.name}) speaking')

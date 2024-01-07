@@ -36,6 +36,29 @@ class Chat:
     client = OpenAI(api_key=secrets.get('api_key'))
 
     @staticmethod
+    def summarize(messages):
+        try:
+            log.info('OpenAI: Chat completion requested.')
+            completion = Chat.client.chat.completions.create(model=settings.get('chat.model'),
+                                                             messages=messages,
+                                                             max_tokens=settings.get('chat.tokens'))
+        except RateLimitError as error:
+            log.error(f'{error}: Retrying in 60 seconds.')
+            sleep(60)
+            return Chat.summarize(messages)
+        except (APIError, OpenAIError, ConflictError, NotFoundError, APIStatusError, APITimeoutError,
+                BadRequestError, APIConnectionError, AuthenticationError, InternalServerError, PermissionDeniedError,
+                UnprocessableEntityError, APIResponseValidationError) as error:
+            log.error(error)
+            return
+
+        try:
+            return completion.choices[0].message.content
+        except IndexError as error:
+            log.warning(error)
+            return
+
+    @staticmethod
     def send(prompt, character, task, history, summary, chat_model_override=None):
         messages = [
             {"role": ai.Role.SYSTEM.value, "content": character.motivation}

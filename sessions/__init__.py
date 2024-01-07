@@ -143,7 +143,7 @@ class Session:
             {"role": "system", "content": list(self.tasks.values())[0].summary.description}
         ]
 
-        summary = ai.modules.get(settings.chat.module).Chat.send(messages)
+        summary = ai.modules.get(settings.chat.module).Chat.summarize(messages)
         self.summary = Moment(ai.Role.ASSISTANT.value, summary)
         log.info(f'OpenAI: Summary: {self.summary}')
 
