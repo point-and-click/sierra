@@ -6,4 +6,4 @@ items:
   - key: chat.tokens
     value: 300
   - key: transcribe.model
-    value: base
+    value: tiny

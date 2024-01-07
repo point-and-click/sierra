@@ -19,7 +19,7 @@ class Role(Enum):
 
 modules = {}
 for ai_glob in glob(path.join('ai', '*')):
-    if isdir(ai_glob):
+    if isdir(ai_glob) and not ai_glob.startswith('_'):
         modules[path.split(ai_glob)[-1]] = import_module('.'.join(path.split(ai_glob)))
 
 

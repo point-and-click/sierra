@@ -1,0 +1,3 @@
+items:
+  - key: transcribe.model
+    value: openai/whisper-base

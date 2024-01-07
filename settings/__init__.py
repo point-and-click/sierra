@@ -31,8 +31,8 @@ class SierraSettings:
 
     class _TranscribeSettings:
         def __init__(self, transcribe_settings):
-            self.model = transcribe_settings.get('model')
             self.module = transcribe_settings.get('module')
+            self.reconstitute = transcribe_settings.get('reconstitute')
 
     class _VisualSettings:
         def __init__(self, visual_settings):

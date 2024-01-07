@@ -110,7 +110,7 @@ class Session:
         response, audio_bytes = character.converse(prompt, self.summary, self.history)
 
         if audio_bytes is not None:
-            self.output_queue.put(Output(character, audio_bytes))
+            self.output_queue.put(Output(character, audio_bytes, response))
 
         self.response_word_count += len(response.split())
 

@@ -23,6 +23,7 @@ from openai import (
 
 import ai
 from play.rules import RuleType
+from play.subtitles import Subtitles
 from settings.secrets import Secrets
 from settings.settings import Settings
 from settings import sierra_settings
@@ -106,8 +107,10 @@ class Chat:
 
 class Transcribe:
     @staticmethod
-    def send(audio_bytes):
+    def send(audio_path):
         log.info('Whisper: Transcribing recorded audio.')
         model = whisper.load_model(settings.get('transcribe.model'))
-        result = model.transcribe(audio_bytes, fp16=False, word_timestamps=True)
-        return result
+        result = model.transcribe(audio_path, fp16=False, word_timestamps=True)
+        subtitles = Subtitles([(segment.get('text'), segment.get('start'), segment.get('end')) for segment in result.get('segments')])
+        text = result.get('text')
+        return text, subtitles

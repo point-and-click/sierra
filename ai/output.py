@@ -6,10 +6,11 @@ from settings import sierra_settings as settings
 
 
 class Output:
-    def __init__(self, character: Character, audio_bytes):
+    def __init__(self, character: Character, audio_bytes, original_text):
         self.character = character
         self.audio = SpeakOutput(audio_bytes)
-        # self.subtitles = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send(self.audio.path)
+        self.original_text = original_text
+        _, self.subtitles = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send(self.audio.path)
 
 
 class SpeakOutput:

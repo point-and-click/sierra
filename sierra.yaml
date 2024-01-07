@@ -9,14 +9,14 @@ tasks:
 chat:
   module: open_ai
 speech:
-  enabled: false
+  enabled: true
   module: play_ht
   channels: 1
   sample_rate: 24000
   chunk_size: 4098
 transcribe:
   module: open_ai
-  model: base
+  reconstitute: true
 visual:
   enabled: true
   chroma_key: 0,255,0

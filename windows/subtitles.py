@@ -15,14 +15,14 @@ def segment_as_label(segment):
         font_name='Arial',
         font_size=32,
         x=0, anchor_x='left',
-        y=128, anchor_y='top',
+        y=0, anchor_y='bottom',
         multiline=True, width=1024
     )
 
 
 class SubtitlesWindow(Window):
     def __init__(self, ):
-        super().__init__('Subtitles', 1024, 128)
+        super().__init__('Subtitles', 1024, 170)
         red, green, blue = sierra_settings.visual.chroma_key
         pyglet.gl.glClearColor(red, green, blue, 1)
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
@@ -49,8 +49,8 @@ class SubtitlesWindow(Window):
             except TypeError:
                 pass
 
-    async def play(self, segments):
-        self.segments = [SubtitleSegment(segment) for segment in segments]
+    async def play(self, subtitles):
+        self.segments = subtitles.segments
         self.current_segment = 0
 
         segments_start = datetime.now()
@@ -60,15 +60,3 @@ class SubtitlesWindow(Window):
                 self.current_segment += 1
 
         self.segments = None
-
-
-class SubtitleSegment:
-    def __init__(self, segment):
-        # Silence is handled weirdly by segments.
-        self.text = segment.get('text', '')
-        self.start = segment.get('start', 0)
-        self.end = segment.get('end', 0)
-        self.duration = self.end - self.start
-
-    def complete(self, start_time, time):
-        return start_time + timedelta(seconds=self.start) + timedelta(seconds=self.duration) <= time

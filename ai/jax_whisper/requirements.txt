@@ -1,0 +1,2 @@
+git+https://github.com/sanchit-gandhi/whisper-jax.git
+#"jax[cuda12_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html

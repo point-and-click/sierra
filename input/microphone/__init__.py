@@ -81,7 +81,7 @@ class InputController:
         while True:
             log.info('\ninput.py: Press binds to record.')
             self.record(path.join(*['temp', 'input.wav']))
-            prompt = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send(path.join(*['temp', 'input.wav']))['text']
+            prompt, _ = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send(path.join(*['temp', 'input.wav']))
 
             chat.submit(prompt, self.recording.character)
             log.info(f'Whisper: Transcribed: {prompt}')
