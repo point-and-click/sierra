@@ -24,8 +24,8 @@ class CharacterWindow(Window):
         self._image.anchor_x = self._image.width / 2
         self._image.anchor_y = self._image.height / 2
         self.sprite = pyglet.sprite.Sprite(self._image)
-        self.sprite.x = 256
-        self.sprite.y = 256
+        self.sprite.x = self._image.width / 2
+        self.sprite.y = self._image.height / 2
         self.animation = RotateAnimation(sierra_settings.visual.animation)
         self._angle = 0
         self.hidden = True

@@ -6,7 +6,8 @@ from settings import sierra_settings as settings
 
 
 class Output:
-    def __init__(self, character: Character, audio_bytes, original_text):
+    def __init__(self, _id, character: Character, audio_bytes, original_text):
+        self.id = _id
         self.character = character
         self.audio = SpeakOutput(audio_bytes)
         self.original_text = original_text
@@ -19,5 +20,8 @@ class SpeakOutput:
         self.path = f'temp/{datetime.now().strftime("%Y-%m-%d %H-%M-%S+%f")}'
         with open(self.path, "wb") as audio_file:
             audio_file.write(self.bytes)
-        with open('temp/output.wav', "wb") as audio_file:
-            audio_file.write(self.bytes)
+        try:
+            with open('temp/output.wav', "wb") as audio_file:
+                audio_file.write(self.bytes)
+        except:
+            pass

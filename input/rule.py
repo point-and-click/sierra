@@ -1,5 +1,5 @@
 import requests
-from flask import request, Blueprint
+from flask import request, Blueprint, jsonify
 
 from play.rules import RuleType
 from sessions import Session
@@ -13,6 +13,17 @@ def rule_receive():
     session = Session()
     session.characters.get(request.json.get('character')).add_rule(RuleType.TEMPORARY, request.json)
     return "Good job!", 200
+
+
+@rules.route("/rules", methods=["GET"])
+def rules_display():
+    session = Session()
+
+    chat_rules = {}
+    for character in session.characters.values():
+        chat_rules[character.name] = character.serialize_rules(RuleType.TEMPORARY)
+
+    return jsonify(chat_rules), 200
 
 
 def submit(rule, character, duration):

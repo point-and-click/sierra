@@ -16,6 +16,7 @@ from settings import sierra_settings as settings
 from utils.logging import log
 from utils.logging.format import nl, tab
 from windows import Manager
+from windows.input_queue import InputQueueWindow
 from windows.subtitles import SubtitlesWindow
 
 
@@ -34,6 +35,7 @@ class Session:
 
             self.windows = Manager()
             self.windows.subtitles = SubtitlesWindow()
+            self.windows.input_queue = InputQueueWindow()
 
             available_characters = Play.characters()
             self.characters = {
@@ -87,7 +89,9 @@ class Session:
     async def process_input(self):
         while True:
             if not self.input_queue.empty():
-                input_thread = Thread(target=input_target, args=(self, self.input_queue.get()))
+                inp = self.input_queue.get()
+                self.windows.input_queue.add_panel(inp.id, inp.character, inp.message, inp.source)
+                input_thread = Thread(target=input_target, args=(self, inp))
                 input_thread.start()
             else:
                 await asyncio.sleep(0.1)
@@ -97,6 +101,7 @@ class Session:
             if not self.output_queue.empty():
                 output = self.output_queue.get()
                 await output.character.respond(output)
+                self.windows.input_queue.remove_panel(output.id)
             else:
                 await asyncio.sleep(0.1)
 
@@ -110,7 +115,7 @@ class Session:
         response, audio_bytes = character.converse(prompt, self.summary, self.history)
 
         if audio_bytes is not None:
-            self.output_queue.put(Output(character, audio_bytes, response))
+            self.output_queue.put(Output(ai_input.id, character, audio_bytes, response))
 
         self.response_word_count += len(response.split())
 
@@ -126,7 +131,6 @@ class Session:
             character.rules[RuleType.TEMPORARY] = [
                 rule for rule in character.rules[RuleType.TEMPORARY] if rule.expiration_time > datetime.now()
             ]
-            log.info(f'Rules:\n{(nl + tab).join([rule.text for rule in character.rules[RuleType.TEMPORARY]])}')
 
     def post_process(self):
         history_word_count = sum([len(entry.content.split()) for entry in self.history])
@@ -159,7 +163,7 @@ class Session:
         for character in self.characters.values():
             log.info(
                 f'''Loaded rules for ({character.name}):\n\t{f"{nl}{tab}".join(
-                    [repr(entry) for entry in character.rules])}'''
+                    [repr(entry) for entry in character.rules.get(RuleType.PERMANENT)])}'''
             )
         self.history = obj.history
         log.info(

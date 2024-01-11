@@ -17,7 +17,7 @@ class InputController:
             index = int(input('Character: '))
             prompt = input(f'Ask {self.settings.characters[index]}: ')
 
-            chat.submit(prompt, self.settings.characters[index])
+            chat.submit(prompt, self.settings.characters[index], 'Twitch')
 
 
 class InputSettings:

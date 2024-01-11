@@ -110,7 +110,8 @@ class Listener:
             case FunctionType.CHAT:
                 chat.submit(
                     event.message.format(data=data, message=message),
-                    character
+                    character,
+                    "Twitch"
                 )
             case FunctionType.RULE:
                 rule.submit(message, character, 30)
@@ -129,7 +130,8 @@ class Listener:
 
         chat.submit(
             event.message.format(data=data, message=message),
-            character
+            character,
+            'Twitch'
         )
 
     async def on_follow(self, data: ChannelFollowEvent):
@@ -138,7 +140,8 @@ class Listener:
 
         chat.submit(
             event.message.format(data=data),
-            self.emotes.characters[0]
+            self.emotes.characters[0],
+            'Twitch'
         )
 
     async def on_hype_train_start(self, data: HypeTrainEvent):
@@ -147,7 +150,8 @@ class Listener:
 
         chat.submit(
             event.message.format(data=data),
-            self.emotes.characters[0]
+            self.emotes.characters[0],
+            'Twitch'
         )
 
     async def on_hype_end(self, data: HypeTrainEndEvent):
@@ -156,7 +160,8 @@ class Listener:
 
         chat.submit(
             event.message.format(data=data),
-            self.emotes.characters[0]
+            self.emotes.characters[0],
+            'Twitch'
         )
 
     async def on_poll_begin(self, data: ChannelPollBeginEvent):
@@ -165,7 +170,8 @@ class Listener:
 
         chat.submit(
             event.message.format(data=data),
-            self.emotes.characters[0]
+            self.emotes.characters[0],
+            'Twitch'
         )
 
     async def on_poll_end(self, data: ChannelPollEndEvent):
@@ -174,7 +180,8 @@ class Listener:
 
         chat.submit(
             event.message.format(data=data),
-            self.emotes.characters[0]
+            self.emotes.characters[0],
+            'Twitch'
         )
 
     async def on_prediction(self, data: ChannelPredictionEvent):
@@ -183,7 +190,8 @@ class Listener:
 
         chat.submit(
             event.message.format(data=data),
-            self.emotes.characters[0]
+            self.emotes.characters[0],
+            'Twitch'
         )
 
     async def on_prediction_end(self, data: ChannelPredictionEndEvent):
@@ -192,7 +200,8 @@ class Listener:
 
         chat.submit(
             event.message.format(data=data),
-            self.emotes.characters[0]
+            self.emotes.characters[0],
+            'Twitch'
         )
 
     async def on_raid(self, data: ChannelRaidEvent):
@@ -201,7 +210,8 @@ class Listener:
 
         chat.submit(
             event.message.format(data=data),
-            self.emotes.characters[0]
+            self.emotes.characters[0],
+            'Twitch'
         )
 
     async def on_subscribe(self, data: ChannelSubscribeEvent):
@@ -210,7 +220,8 @@ class Listener:
 
         chat.submit(
             event.message.format(data=data),
-            self.emotes.characters[0]
+            self.emotes.characters[0],
+            'Twitch'
         )
 
     async def on_subscribe_gift(self, data: ChannelSubscriptionGiftEvent):
@@ -219,7 +230,8 @@ class Listener:
 
         chat.submit(
             event.message.format(data=data),
-            self.emotes.characters[0]
+            self.emotes.characters[0],
+            'Twitch'
         )
 
 

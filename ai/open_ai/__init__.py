@@ -113,4 +113,5 @@ class Transcribe:
         result = model.transcribe(audio_path, fp16=False, word_timestamps=True)
         subtitles = Subtitles([(segment.get('text'), segment.get('start'), segment.get('end')) for segment in result.get('segments')])
         text = result.get('text')
+        log.info(f'Whisper: Transcribed {text}')
         return text, subtitles

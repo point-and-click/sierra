@@ -60,7 +60,7 @@ class Bot:
     @staticmethod
     async def command_rules(cmd: ChatCommand):
         result = requests.get("http://localhost:8008/rules")
-        rules = '\n\n'.join(json.loads(result.text))
+        rules = '\n\n'.join([f'({k}): [{v}]' for k, v in result.json().items()])
         await cmd.reply(f'Here\'s the rules:\n\n{rules}')
 
     @staticmethod

@@ -83,7 +83,7 @@ class InputController:
             self.record(path.join(*['temp', 'input.wav']))
             prompt, _ = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send(path.join(*['temp', 'input.wav']))
 
-            chat.submit(prompt, self.recording.character)
+            chat.submit(prompt, self.recording.character, 'Microphone')
             log.info(f'Whisper: Transcribed: {prompt}')
 
     class _Status:

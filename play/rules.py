@@ -10,8 +10,11 @@ class RuleType(Enum):
 
 
 class Rule:
-    def __init__(self, json):
-        self.text = json.get('rule')
+    def __init__(self, rule):
+        if type(rule) is dict:
+            self.text = rule.get('rule')
+        if type(rule) is str:
+            self.text = rule
 
     def __repr__(self):
         return self.text
