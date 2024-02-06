@@ -1,0 +1,9 @@
+name: Pal World
+description: >
+  You are role-playing in a fantasy world where you catch wild monsters in magical balls and train them to fight.
+
+summary:
+  user: true
+  assistant: true
+  description: >
+    Summarize the content.

@@ -4,6 +4,7 @@ from os import path
 from yaml import safe_load
 
 from input import chat
+from input.keyboard.tools import generate_prompt
 from utils.logging import log
 
 
@@ -16,8 +17,9 @@ class InputController:
             log.info(''.join([f'{i}: {character}\n' for i, character in enumerate(self.settings.characters)]))
             index = int(input('Character: '))
             prompt = input(f'Ask {self.settings.characters[index]}: ')
+            prompt = generate_prompt() if prompt == '' else prompt
 
-            chat.submit(prompt, self.settings.characters[index], 'Twitch')
+            chat.submit(prompt, self.settings.characters[index], 'Microphone')
 
 
 class InputSettings:

@@ -3,7 +3,7 @@ visual:
   image: God.png
 chat:
   rules:
-    - Limit responses 60 words at most.
+    - Limit responses 100 words at most.
     - Speak in the first person.
     - Respond in character.
     - Avoid any specific verbiage in the rules.

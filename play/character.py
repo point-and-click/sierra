@@ -29,8 +29,8 @@ class Character:
         self.image = yaml.get('visual', None).get('image', None)
 
         self.window = None
-        self.listener = keyboard.Listener(on_release=self.on_release)
-        self.listener.start()
+        # self.listener = keyboard.Listener(on_release=self.on_release)
+        # self.listener.start()
 
     def __setstate__(self, state):
         self.name = state.get('name', None)
@@ -78,23 +78,23 @@ class Character:
     async def respond(self, ai_output):
         log.info(f'Character ({self.name}) speaking')
 
-        while not self.play:
-            await asyncio.sleep(0.1)
+        # while not self.play:
+        await asyncio.sleep(0.1)
         if settings.transcribe.reconstitute:
             ai_output.subtitles.reconstitute(ai_output.original_text)
         character_task = asyncio.create_task(self.window.speak(ai_output.audio))
         subtitle_task = asyncio.create_task(self.window.manager.subtitles.play(ai_output.subtitles))
-        self.play = False
+        # self.play = False
         await asyncio.gather(character_task, subtitle_task)
 
-    def on_release(self, key: keyboard.Key | keyboard.KeyCode):
-        match type(key):
-            case keyboard.Key:
-                number = key.value.vk
-            case keyboard.KeyCode:
-                number = key.vk
-            case _:
-                number = None
-
-        if number == 34:
-            self.play = True
+    # def on_release(self, key: keyboard.Key | keyboard.KeyCode):
+    #     match type(key):
+    #         case keyboard.Key:
+    #             number = key.value.vk
+    #         case keyboard.KeyCode:
+    #             number = key.vk
+    #         case _:
+    #             number = None
+    #
+    #     if number == 34:
+    #         self.play = True

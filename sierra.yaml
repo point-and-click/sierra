@@ -5,7 +5,7 @@ characters:
   - Mickey
   - Other Poop
 tasks:
-  - Chat
+  - Pal World
 chat:
   module: open_ai
 speech:

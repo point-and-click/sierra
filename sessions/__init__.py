@@ -149,6 +149,7 @@ class Session:
 
         summary = ai.modules.get(settings.chat.module).Chat.summarize(messages)
         self.summary = Moment(ai.Role.ASSISTANT.value, summary)
+        self.history = self.history[:-6]
         log.info(f'OpenAI: Summary: {self.summary}')
 
         return True
