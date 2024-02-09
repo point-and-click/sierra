@@ -11,8 +11,8 @@ emotes:
       value: Man In Red Truck
     - key: God
       value: God
-    - key: Mickey
-      value: Mickey
+    - key: Turtle
+      value: Party Turtle
 replies:
   - pattern: p
     response: 'Poop!!'

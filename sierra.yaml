@@ -2,10 +2,10 @@ characters:
   - B
   - God
   - Man In Red Truck
-  - Mickey
+  - Party Turtle
   - Other Poop
 tasks:
-  - Pal World
+  - Poker
 chat:
   module: open_ai
 speech:
