@@ -25,50 +25,48 @@ import ai
 from play.rules import RuleType
 from settings.secrets import Secrets
 from settings.settings import Settings
-from settings import sierra_settings
 from utils.logging import log
 
-secrets = Secrets(path.join(*__name__.split('.'), 'secrets.yaml'))
-settings = Settings(path.join(*__name__.split('.'), 'settings.yaml'))
+secrets = Secrets(path.join(path.split(path.relpath(__file__))[0], 'secrets.yaml'))
+settings = Settings(path.join(path.split(path.relpath(__file__))[0], 'settings.yaml'))
 
 
 class Chat:
     client = OpenAI(api_key=secrets.get('api_key'))
 
     @staticmethod
-    def send(prompt, character, task, history, summary, chat_model_override=None):
-        messages = [
-            {"role": ai.Role.SYSTEM.value, "content": character.motivation}
-        ]
-        if summary:
+    def send(prompt, session, character=None):
+        messages = []
+        if character:
             messages.append(
-                {"role": summary.role, "content": summary.content}
+                {"role": ai.Role.SYSTEM.value, "content": character.personality.get('description')}
             )
-        if task and character:
-            messages.append(
-                {"role": ai.Role.USER.value,
-                 "content": f'{task.description} {character.serialize_rules(RuleType.PERMANENT)}'}
-            )
-        if len(history) > 0:
+            if character.task:
+                messages.append(
+                    {"role": ai.Role.USER.value,
+                     "content": f'{character.task.description} {character.serialize_rules(RuleType.PERMANENT)}'}
+                )
+        if session.history.summary:
+            messages.append(session.history.summary.serialize())
+        if session.history.moments:
             messages.extend(
-                [{"role": entry.role, "content": entry.content} for entry in history[-sierra_settings.history.max:]]
+                [entry.serialize() for entry in session.history.get()]
             )
         messages.append(
             {"role": ai.Role.USER.value,
              "content": f'{character.serialize_rules(RuleType.TEMPORARY)} {prompt}'}
         )
 
-        model = chat_model_override if chat_model_override else settings.get('chat.model')
+        model = character.personality.get('model', settings.get('chat.model'))
 
         try:
-            log.info('OpenAI: Chat completion requested.')
             completion = Chat.client.chat.completions.create(model=model,
                                                              messages=messages,
                                                              max_tokens=settings.get('chat.tokens'))
         except RateLimitError as error:
             log.error(f'{error}: Retrying in 60 seconds.')
             sleep(60)
-            return Chat.send(prompt, character, task, history, summary, chat_model_override)
+            return Chat.send(prompt, session, character)
         except (APIError, OpenAIError, ConflictError, NotFoundError, APIStatusError, APITimeoutError,
                 BadRequestError, APIConnectionError, AuthenticationError, InternalServerError, PermissionDeniedError,
                 UnprocessableEntityError, APIResponseValidationError) as error:
@@ -84,8 +82,6 @@ class Chat:
 
 class Transcribe:
     @staticmethod
-    def send(audio_bytes):
-        log.info('Whisper: Transcribing recorded audio.')
+    def send(audio_path):
         model = whisper.load_model(settings.get('transcribe.model'))
-        result = model.transcribe(audio_bytes, fp16=False, word_timestamps=True)
-        return result
+        return model.transcribe(audio_path, fp16=False, word_timestamps=True)

@@ -1,8 +1,14 @@
 import asyncio
+from datetime import datetime
 
 import ai
+import plugins
+from play.chat import Chat
 from play.rules import Rule, RuleType
+from play.speech import Speech
+from play.subtitles import Subtitles
 from settings import sierra_settings as settings
+from utils.format import truncate
 from utils.logging import log
 from windows.character import CharacterWindow
 
@@ -11,15 +17,15 @@ class Character:
     def __init__(self, glob, yaml):
         self.name = yaml.get('name', None)
         self.task = None
+        self.rules = {RuleType.PERMANENT: [Rule(rule) for rule in yaml.get('chat', {}).get('rules', [])],
+                      RuleType.TEMPORARY: []}
 
-        self.motivation = yaml.get('chat', {}).get('motivation', None)
-        self.rules = {RuleType.PERMANENT: yaml.get('rules', []), RuleType.TEMPORARY: []}
-        self.voice = yaml.get('speech', {}).get('voice', None)
+        self.personality = yaml.get('chat', {}).get('personality', {})
+        self.voice = yaml.get('speech', {}).get('voice', {})
 
-        self.overrides = yaml.get('overrides', None)
-
-        self.chat_ai = ai.load(settings.chat.module, ai.Function.CHAT)()
-        self.speak_ai = ai.load(settings.speech.module, ai.Function.SPEAK)()
+        self.chat_ai = ai.load(yaml.get('chat', {}).get('service', 'open_ai'), ai.Function.CHAT)()
+        self.speak_ai = ai.load(yaml.get('speech', {}).get('service', 'elevenlabs'), ai.Function.SPEAK)()
+        self.transcribe_ai = ai.load(yaml.get('transcribe', {}).get('service', 'open_ai'), ai.Function.TRANSCRIBE)()
 
         self.path = glob
         self.image = yaml.get('visual', None).get('image', None)
@@ -28,11 +34,9 @@ class Character:
 
     def __setstate__(self, state):
         self.name = state.get('name', None)
-        self.chat_model_override = state.get('chat_model_override', None)
         self.motivation = state.get('motivation', None)
-        self.rules = state.get('rules', None)
+        self.rules = state.get('chat', {}).get('rules', {RuleType.PERMANENT: [], RuleType.TEMPORARY: []})
         self.voice = state.get('voice', None)
-        self.rules = state.get('rules', [])
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -51,21 +55,32 @@ class Character:
     def serialize_rules(self, rule_type):
         return ''.join([f'{rule.text} ' for rule in self.rules.get(rule_type)])
 
-    def converse(self, prompt, summary, history):
-        response = self.chat_ai.send(prompt, self, self.task, history, summary,)
+    def converse(self, prompt, session):
+        timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S+%f")
 
-        log.info(f'Character ({self.name}): {response}')
+        plugins.hook(plugins.HookType.PRE_CHAT)
+        log.info('Chat AI: Chat completion requested.')
+        chat = Chat(timestamp, self.chat_ai.send(prompt, session, self))
+        plugins.hook(plugins.HookType.POST_CHAT)
 
-        if settings.speech.enabled:
-            audio_bytes = self.speak_ai.send(response, self.voice)
-            return response, audio_bytes
-        else:
-            log.info('Speech synthesis is disabled. Skipping.')
-            return response, None, None
+        plugins.hook(plugins.HookType.PRE_SPEECH)
+        log.info('Speech AI: Speech synthesis requested.')
+        speech = Speech(timestamp, *self.speak_ai.send(chat.response, self.voice))
+        plugins.hook(plugins.HookType.POST_SPEECH)
+
+        plugins.hook(plugins.HookType.PRE_TRANSCRIBE)
+        log.info('Transcribe AI: Transcribing synthesized audio.')
+        subtitles = Subtitles(timestamp, self.transcribe_ai.send(speech.path))
+        plugins.hook(plugins.HookType.POST_TRANSCRIBE)
+
+        return chat, speech, subtitles
 
     async def respond(self, ai_output):
-        log.info(f'Character ({self.name}) speaking')
-        character_task = asyncio.create_task(self.window.speak(ai_output.audio))
-        subtitle_task = asyncio.create_task(self.window.manager.subtitles.play(ai_output.subtitles.get('segments')))
+        if settings.transcribe.reconstitute:
+            ai_output.subtitles.reconstitute(ai_output.chat.response)
+
+        log.info(f'\tCharacter ({self.name}): {truncate(ai_output.chat.response, 256)}')
+        character_task = asyncio.create_task(self.window.speak(ai_output.speech))
+        subtitle_task = asyncio.create_task(self.window.manager.subtitles.play(ai_output.subtitles))
 
         await asyncio.gather(character_task, subtitle_task)

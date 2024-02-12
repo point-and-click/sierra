@@ -22,3 +22,7 @@ def split_string_by_length(input_string, max_length):
         lines.append(current_line.rstrip())
 
     return lines
+
+
+def truncate(string, length):
+    return string if len(string) < length else string[:length] + '...'

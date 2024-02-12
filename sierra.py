@@ -5,6 +5,7 @@ from threading import Thread
 from glob import glob
 
 from input import sierra
+import plugins
 from sessions import Session
 from utils.logging import log
 
@@ -29,8 +30,6 @@ class API:
     @staticmethod
     def thread():
         log.info('Starting API ...')
-        sys.modules['flask.cli'].show_server_banner = lambda *x: None
-        logging.getLogger("werkzeug").setLevel(logging.ERROR)
         sierra.run(port=8008)
 
     def start(self):
@@ -38,7 +37,12 @@ class API:
 
 
 if __name__ == '__main__':
+    sys.modules['flask.cli'].show_server_banner = lambda *x: None
+    logging.getLogger('werkzeug').setLevel(logging.ERROR)
+    logging.getLogger('httpx').setLevel(logging.ERROR)
+
     with Session() as session:
+        plugins.hook(plugins.HookType.INITIALIZE)
         saves = glob('saves/*.sierra')
         if saves:
             if input('Load history from previous session? (y/N): ').lower().startswith('y'):

@@ -17,12 +17,12 @@ class InputController:
             index = int(input('Character: '))
             prompt = input(f'Ask {self.settings.characters[index]}: ')
 
-            chat.submit(prompt, self.settings.characters[index])
+            chat.submit(prompt, self.settings.characters[index], 'keyboard')
 
 
 class InputSettings:
     def __init__(self):
-        with open(path.join(*__name__.split('.'), 'config.yaml'), 'r') as file:
+        with open(path.join(path.split(path.relpath(__file__))[0], 'config.yaml'), 'r') as file:
             self._raw = safe_load(file)
         self.characters = self._raw.get('characters', [])
 

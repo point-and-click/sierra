@@ -24,7 +24,7 @@ class Speak:
         return response.text
 
     @staticmethod
-    def send(text, voice):
+    def send(text: str, voice: dict) -> tuple[bytes, str]:
         url = "https://play.ht/api/v2/tts/stream"
 
         payload = {
@@ -32,9 +32,9 @@ class Speak:
             "output_format": "mp3",
             "speed": 1,
             "sample_rate": settings.get('sample_rate'),
-            "voice": voice,
+            "voice": voice.get('voice_id'),
             "text": text,
-            "voice_engine": "PlayHT2.0-turbo",
+            "voice_engine": voice.get('voice_engine', 'PlayHT2.0-turbo'),
             "voice_guidance": 5,
             "temperature": 0.5
         }
@@ -47,23 +47,12 @@ class Speak:
 
         response = requests.post(url, json=payload, headers=headers)
 
-        # audio_stream_url = json.loads(str(response.text))['href']
-
-        # session = requests.Session()
-        #
-        # headers = {
-        #     "AUTHORIZATION": f'Bearer {config("PLAY_HT_API_KEY")}',
-        #     "X-USER-ID": config("PLAY_HT_USER_ID")
-        # }
-        #
-        # response = session.get(audio_stream_url, headers=headers, stream=True)
-
         while response.status_code == 504:
             log.info("Play.HT Gateway timeout. Retrying...")
             response = requests.post(url, json=payload, headers=headers)
 
         if response.status_code == 200:
-            return response.content
+            return response.content, 'mp3'
         else:
             raise CustomException("Womp womp.", None)
 
@@ -77,5 +66,5 @@ class CustomException(Exception):
         self.errors = errors
 
 
-secrets = Secrets(path.join(*__name__.split('.'), 'secrets.yaml'))
-settings = Settings(path.join(*__name__.split('.'), 'settings.yaml'))
+secrets = Secrets(path.join(path.split(path.relpath(__file__))[0], 'secrets.yaml'))
+settings = Settings(path.join(path.split(path.relpath(__file__))[0], 'settings.yaml'))

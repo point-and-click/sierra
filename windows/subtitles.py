@@ -1,5 +1,4 @@
 import asyncio
-from copy import copy, deepcopy
 from datetime import datetime, timedelta
 
 import pyglet
@@ -28,44 +27,36 @@ class SubtitlesWindow(Window):
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
 
-        self.segments = None
-        self.current_segment = None
+        self.segment = None
 
         @self.window.event
         def on_draw():
             self.window.clear()
-            if self.segments:
-                label = segment_as_label(self.segments[self.current_segment])
-                outline = segment_as_label(self.segments[self.current_segment])
-                for dx in range(-2, 3):
-                    for dy in range(-2, 3):
-                        if abs(dx) + abs(dy) != 0:
-                            outline.x = label.x + dx
-                            outline.y = label.y + dy
-                            outline.color = (0, 0, 0, 255)
-                            outline.draw()
-                label.draw()
+            try:
+                if self.segment:
+                    label = segment_as_label(self.segment)
+                    outline = segment_as_label(self.segment)
+                    for dx in range(-2, 3):
+                        for dy in range(-2, 3):
+                            if abs(dx) + abs(dy) != 0:
+                                outline.x = label.x + dx
+                                outline.y = label.y + dy
+                                outline.color = (0, 0, 0, 255)
+                                outline.draw()
+                    label.draw()
+            except TypeError:
+                pass
 
-    async def play(self, segments):
-        self.segments = [SubtitleSegment(segment) for segment in segments]
-        self.current_segment = 0
+    async def play(self, subtitles):
+        segment = iter(subtitles)
+        self.segment = next(segment)
 
         segments_start = datetime.now()
-        while self.current_segment < len(self.segments):
+        while self.segment:
             await asyncio.sleep(0.01)
-            if self.segments[self.current_segment].complete(segments_start, datetime.now()):
-                self.current_segment += 1
-
-        self.segments = None
-
-
-class SubtitleSegment:
-    def __init__(self, segment):
-        # Silence is handled weirdly by segments.
-        self.text = segment.get('text', '')
-        self.start = segment.get('start', 0)
-        self.end = segment.get('end', 0)
-        self.duration = self.end - self.start
-
-    def complete(self, start_time, time):
-        return start_time + timedelta(seconds=self.start) + timedelta(seconds=self.duration) <= time
+            if self.segment.complete(segments_start, datetime.now()):
+                try:
+                    self.segment = next(segment)
+                except StopIteration:
+                    self.segment = None
+                    break

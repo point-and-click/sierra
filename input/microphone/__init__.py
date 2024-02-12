@@ -10,7 +10,6 @@ from yaml import safe_load
 import ai
 from input import chat
 from input.microphone.config import Bind, Audio
-from settings import sierra_settings as settings
 from utils.logging import log
 
 
@@ -81,10 +80,11 @@ class InputController:
         while True:
             log.info('\ninput.py: Press binds to record.')
             self.record(path.join(*['temp', 'input.wav']))
-            prompt = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send(path.join(*['temp', 'input.wav']))['text']
+            prompt = ai.load(self.settings.transcribe,
+                             ai.Function.TRANSCRIBE)().send(path.join(*['temp', 'input.wav']))['text']
 
-            chat.submit(prompt, self.recording.character)
-            log.info(f'Whisper: Transcribed: {prompt}')
+            chat.submit(prompt, self.recording.character, 'microphone')
+            log.info(f'Transcribe AI: {prompt}')
 
     class _Status:
         def __init__(self):
@@ -94,10 +94,11 @@ class InputController:
 
 class InputSettings:
     def __init__(self):
-        with open(path.join(*__name__.split('.'), 'config.yaml'), 'r') as file:
+        with open(path.join(path.split(path.relpath(__file__))[0], 'config.yaml'), 'r') as file:
             self._raw = safe_load(file)
         self.audio = Audio(self._raw.get('audio', {}))
         self.binds = {bind.vk: bind for bind in [Bind(bind) for bind in self._raw.get('binds', [])]}
+        self.transcribe = self._raw.get('transcribe.', 'open_ai')
 
 
 async def collect():

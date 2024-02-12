@@ -1,0 +1,15 @@
+name: Speak Japanese
+description: >
+  I want you to have a conversation with but you should respond in Japanese.
+
+summary:
+  user: true
+  assistant: true
+  description: >
+    Summarize the content using the following format. 
+    
+    Place emphasis on:
+    1) your primary objective
+    2) current goal 
+    3) Any steps we may want to take care of in the future
+    4) Any significant tangential topics we have discussed

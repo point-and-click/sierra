@@ -10,12 +10,13 @@ import ai
 from ai.output import Output
 from play import Play
 from play.rules import RuleType
-from sessions.history import Moment
+from sessions.history import Moment, History
 from settings import sierra_settings as settings
 
 from utils.logging import log
 from utils.logging.format import nl, tab
 from windows import Manager
+from windows.queue import QueueWindow
 from windows.subtitles import SubtitlesWindow
 
 
@@ -34,22 +35,20 @@ class Session:
 
             self.windows = Manager()
             self.windows.subtitles = SubtitlesWindow()
+            self.windows.queue = QueueWindow()
 
-            available_characters = Play.characters()
             self.characters = {
-                character_name: available_characters.get(character_name) for character_name in settings.characters
+                character_name: Play.characters().get(character_name) for character_name in settings.characters
             }
-            available_tasks = Play.tasks()
             self.tasks = {
-                task_name: available_tasks.get(task_name) for task_name in settings.tasks
+                task_name: Play.tasks().get(task_name) for task_name in settings.tasks
             }
 
             # TODO: Rethink assigning tasks to characters
             for character in self.characters.values():
                 character.assign_task(list(self.tasks.values())[0])
 
-            self.history = []
-            self.summary = None
+            self.history = History(self, settings.history)
 
             self.output_queue = queue.Queue()
             self.input_queue = queue.Queue()
@@ -74,7 +73,7 @@ class Session:
         return '\n'.join(
             [
                 '\tHistory:',
-                *[f'\t\t{entry.role}: {entry.content}' for entry in self.history]
+                *[f'\t\t{entry.role}: {entry.content}' for entry in self.history.get()]
             ]
         )
 
@@ -87,7 +86,9 @@ class Session:
     async def process_input(self):
         while True:
             if not self.input_queue.empty():
-                input_thread = Thread(target=input_target, args=(self, self.input_queue.get()))
+                _input = self.input_queue.get()
+                self.windows.queue.add_panel(_input)
+                input_thread = Thread(target=input_target, args=(self, _input))
                 input_thread.start()
             else:
                 await asyncio.sleep(0.1)
@@ -97,27 +98,26 @@ class Session:
             if not self.output_queue.empty():
                 output = self.output_queue.get()
                 await output.character.respond(output)
+                self.windows.queue.remove_panel(output.id)
             else:
                 await asyncio.sleep(0.1)
 
-    def get_chat_response(self, ai_input):
+    def get_chat_response(self, _input):
         self.pre_process()
 
-        log.info(f"Getting chat response for: {ai_input.message}")
-        prompt = ai_input.message
-        character = self.characters[ai_input.character]
+        prompt = _input.message
+        character = self.characters[_input.character]
 
-        response, audio_bytes = character.converse(prompt, self.summary, self.history)
+        chat, speech, subtitles = character.converse(prompt, self)
 
-        if audio_bytes is not None:
-            self.output_queue.put(Output(character, audio_bytes))
+        self.output_queue.put(Output(_input.id, character, chat, speech, subtitles))
 
-        self.response_word_count += len(response.split())
+        self.response_word_count += len(chat.response.split())
 
-        if settings.summary.user:
-            self.history.append(Moment(ai.Role.USER.value, prompt))
-        if settings.summary.assistant:
-            self.history.append(Moment(ai.Role.ASSISTANT.value, response))
+        if settings.history.summary.user:
+            self.history.add(Moment(ai.Role.USER.value, prompt))
+        if settings.history.summary.assistant:
+            self.history.add(Moment(ai.Role.ASSISTANT.value, chat.response))
 
         self.post_process()
 
@@ -126,28 +126,12 @@ class Session:
             character.rules[RuleType.TEMPORARY] = [
                 rule for rule in character.rules[RuleType.TEMPORARY] if rule.expiration_time > datetime.now()
             ]
-            log.info(f'Rules:\n{(nl + tab).join([rule.text for rule in character.rules[RuleType.TEMPORARY]])}')
 
     def post_process(self):
-        history_word_count = sum([len(entry.content.split()) for entry in self.history])
-
-        if history_word_count > settings.summary.max_words:
-            self.summarize()
+        if self.history.is_stale():
+            self.history.summarize(list(self.tasks.values())[0])
 
         self.save()
-
-    def summarize(self):
-
-        messages = [
-            *[{"role": entry.role, "content": entry.content} for entry in self.history],
-            {"role": "system", "content": self.tasks[0].summary.description}
-        ]
-
-        summary = ai.modules.get(settings.chat.module).Chat.send(messages)
-        self.summary = Moment(ai.Role.ASSISTANT.value, summary)
-        log.info(f'OpenAI: Summary: {self.summary}')
-
-        return True
 
     def save(self):
         pickle.dump(self, open(f'saves/{self.name}.sierra', 'wb'))
@@ -162,7 +146,9 @@ class Session:
             )
         self.history = obj.history
         log.info(
-            f'Loaded history:\n\t{f"{nl}{tab}".join([repr(entry) for entry in self.history])}'
+            f'''Loaded history:\n\tmax:
+            {self.history.max_active_size}
+            \n\t{f"{nl}{tab}".join([repr(entry) for entry in self.history.moments])}'''
         )
 
 

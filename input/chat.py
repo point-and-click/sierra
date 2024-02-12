@@ -14,7 +14,8 @@ def receive():
     return "Good job!", 200
 
 
-def submit(message, character):
+def submit(message, character, source):
     requests.post("http://localhost:8008/chat",
                   json={"message": message,
-                        "character": character})
+                        "character": character,
+                        "source": source})

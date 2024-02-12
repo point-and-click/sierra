@@ -41,6 +41,7 @@ class Manager:
         if not self._initialized:
             self.characters = {}
             self.subtitles = None
+            self.queue = None
 
             self._initialized = True
 

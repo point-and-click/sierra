@@ -34,8 +34,8 @@ class CharacterWindow(Window):
                 self.sprite.rotation = self._angle
                 self.sprite.draw()
 
-    async def speak(self, audio):
-        for amplitude in self._play_audio_chunk(audio):
+    async def speak(self, speech):
+        for amplitude in self._play_audio_chunk(speech):
             while self.paused:
                 time.sleep(0.1)
             self._angle = self.animation.render(amplitude)

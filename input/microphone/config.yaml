@@ -3,6 +3,9 @@ audio:
   channels: 1
   fs: 44100
   sample_rate: 24000
+transcribe: open_ai
 binds: # find the vk value using bind.py
 - vk: 18
-  character: Sierra
+  character: Little Lextra
+- vk: 19
+  character: Shoulder Boy

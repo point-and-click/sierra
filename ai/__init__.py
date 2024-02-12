@@ -4,6 +4,8 @@ from glob import glob
 from os import path
 from os.path import isdir
 
+from utils import excluded_globs
+
 
 class Function(Enum):
     CHAT = "Chat"
@@ -17,11 +19,12 @@ class Role(Enum):
     SYSTEM = "system"
 
 
-modules = {}
+ai = {}
 for ai_glob in glob(path.join('ai', '*')):
-    if isdir(ai_glob):
-        modules[path.split(ai_glob)[-1]] = import_module('.'.join(path.split(ai_glob)))
+    if isdir(ai_glob) and not ai_glob.startswith('_'):
+        if path.exists(path.join(ai_glob, '__init__.py')):
+            ai[path.split(ai_glob)[-1]] = import_module('.'.join(path.split(ai_glob)))
 
 
 def load(name, function):
-    return getattr(modules.get(name), function.value)
+    return getattr(ai.get(name), function.value)
