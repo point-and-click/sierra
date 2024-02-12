@@ -44,7 +44,7 @@ class SubtitlesWindow(Window):
                                 outline.color = (0, 0, 0, 255)
                                 outline.draw()
                     label.draw()
-            except TypeError:
+            except (AttributeError, TypeError):
                 pass
 
     async def play(self, subtitles):
