@@ -2,7 +2,7 @@ import requests
 from flask import request, Blueprint
 
 from play.rules import RuleType
-from sessions import Session
+from play.sessions import Session
 
 rules = Blueprint('rule', __name__)
 

@@ -6,7 +6,7 @@ from glob import glob
 
 from input import sierra
 import plugins
-from sessions import Session
+from play.sessions import Session
 from utils.logging import log
 
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     logging.getLogger('httpx').setLevel(logging.ERROR)
 
     with Session() as session:
-        plugins.hook(plugins.HookType.INITIALIZE)
+        plugins.hook(plugins.HookType.INITIALIZE, session, None)
         saves = glob('saves/*.sierra')
         if saves:
             if input('Load history from previous session? (y/N): ').lower().startswith('y'):

@@ -2,9 +2,21 @@ from datetime import timedelta
 
 
 class Subtitles:
-    def __init__(self, timestamp, transcript):
+    def __init__(self, timestamp):
+        self.timestamp = timestamp
+        self.path = None
+        self.transcript = None
+        self.segments = None
+
+    def set(self, transcript):
+        self.path = f'temp/{self.timestamp}.srt'
         self.transcript = transcript
         self.segments = [Segment(segment) for segment in self.transcript.get('segments')]
+        self._save()
+
+    def _save(self):
+        with open(self.path, 'w') as subtitle_file:
+            subtitle_file.write(str(self.transcript))
 
     def reconstitute(self, original_text):
         words = original_text.split()
@@ -16,6 +28,7 @@ class Subtitles:
             segment['text'] = ' '.join(new_text)
         self.transcript.get('segments')[-1]['text'] += ' '.join(words)
         self.segments = [Segment(segment) for segment in self.transcript.get('segments')]
+        self._save()
 
     def __iter__(self):
         return iter(self.segments)

@@ -23,8 +23,13 @@ class Character:
         self.personality = yaml.get('chat', {}).get('personality', {})
         self.voice = yaml.get('speech', {}).get('voice', {})
 
+        self.skip_chat = False
         self.chat_ai = ai.load(yaml.get('chat', {}).get('service', 'open_ai'), ai.Function.CHAT)()
+
+        self.skip_speech = False
         self.speak_ai = ai.load(yaml.get('speech', {}).get('service', 'elevenlabs'), ai.Function.SPEAK)()
+
+        self.skip_transcribe = False
         self.transcribe_ai = ai.load(yaml.get('transcribe', {}).get('service', 'open_ai'), ai.Function.TRANSCRIBE)()
 
         self.path = glob
@@ -58,20 +63,26 @@ class Character:
     def converse(self, prompt, session):
         timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S+%f")
 
-        plugins.hook(plugins.HookType.PRE_CHAT)
-        log.info('Chat AI: Chat completion requested.')
-        chat = Chat(timestamp, self.chat_ai.send(prompt, session, self))
-        plugins.hook(plugins.HookType.POST_CHAT)
+        chat = Chat(timestamp)
+        plugins.hook(plugins.HookType.PRE_CHAT, session, self, chat)
+        if not self.skip_chat:
+            log.info('Chat AI: Chat completion requested.')
+            chat.set(self.chat_ai.send(prompt, session, self))
+        plugins.hook(plugins.HookType.POST_CHAT, session, self, chat)
 
-        plugins.hook(plugins.HookType.PRE_SPEECH)
-        log.info('Speech AI: Speech synthesis requested.')
-        speech = Speech(timestamp, *self.speak_ai.send(chat.response, self.voice))
-        plugins.hook(plugins.HookType.POST_SPEECH)
+        speech = Speech(timestamp)
+        plugins.hook(plugins.HookType.PRE_SPEECH, session, self, chat, speech)
+        if not self.skip_speech:
+            log.info('Speech AI: Speech synthesis requested.')
+            speech.set(*self.speak_ai.send(chat.response, self.voice))
+        plugins.hook(plugins.HookType.POST_SPEECH, session, self, chat, speech)
 
-        plugins.hook(plugins.HookType.PRE_TRANSCRIBE)
-        log.info('Transcribe AI: Transcribing synthesized audio.')
-        subtitles = Subtitles(timestamp, self.transcribe_ai.send(speech.path))
-        plugins.hook(plugins.HookType.POST_TRANSCRIBE)
+        subtitles = Subtitles(timestamp)
+        plugins.hook(plugins.HookType.PRE_TRANSCRIBE, session, self, chat, speech, subtitles)
+        if not self.skip_transcribe:
+            log.info('Transcribe AI: Transcribing synthesized audio.')
+            subtitles.set(self.transcribe_ai.send(speech.path))
+        plugins.hook(plugins.HookType.POST_TRANSCRIBE, session, self, chat, speech, subtitles)
 
         return chat, speech, subtitles
 

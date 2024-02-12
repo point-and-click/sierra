@@ -57,7 +57,6 @@ class QueueWindow(Window):
                 if len(self.panels) == 2:
                     pass
                 for i, panel in enumerate(self.panels):
-                    border_color = tuple(int(value * 0.5) for value in palette.get(panel.source))
                     rectangle = shapes.BorderedRectangle(width=self.window.width, height=panel.height,
                                                          x=0, y=self.window.height - panel.initial_offset - i * panel.additional_offset,
                                                          color=palette.get(panel.source),

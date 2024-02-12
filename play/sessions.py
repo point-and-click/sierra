@@ -10,7 +10,7 @@ import ai
 from ai.output import Output
 from play import Play
 from play.rules import RuleType
-from sessions.history import Moment, History
+from play.history import Moment, History
 from settings import sierra_settings as settings
 
 from utils.logging import log

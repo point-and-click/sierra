@@ -1,1 +1,1 @@
-excluded_globs = ['__pycache__', '__init__.py']
+excluded_globs = ['__pycache__', 'sessions.py']

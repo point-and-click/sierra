@@ -4,8 +4,6 @@ from glob import glob
 from os import path
 from os.path import isdir
 
-from utils import excluded_globs
-
 
 class Function(Enum):
     CHAT = "Chat"
