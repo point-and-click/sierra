@@ -4,6 +4,7 @@ from datetime import datetime
 import ai
 import plugins
 from play.chat import Chat
+from play.history import History
 from play.rules import Rule, RuleType
 from play.speech import Speech
 from play.subtitles import Subtitles

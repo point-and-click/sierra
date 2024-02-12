@@ -22,22 +22,23 @@ class History:
 
     def summarize(self, task):
         messages = [
-            *[{"role": entry.role, "content": entry.content} for entry in self.get(self.summary_max_active_size)],
+            *[{"role": ai.Role.ASSISTANT if entry.character else ai.Role.USER, "content": entry.response} for entry in
+              self.get(self.summary_max_active_size)],
             {"role": ai.Role.SYSTEM, "content": task.summary.description}
         ]
 
         summary = ai.load(self._ai, ai.Function.CHAT)().send(messages, self._session)
-        self.summary = Moment(ai.Role.ASSISTANT, summary)
+        self.summary = Moment(None, summary)
         log.info(f'History: Summary: {self.summary}')
 
 
 class Moment:
-    def __init__(self, role, content):
-        self.role = role
-        self.content = content
+    def __init__(self, character, response):
+        self.character = character
+        self.response = response
 
     def __repr__(self):
-        return f'{self.role}: {self.content}'
+        return f'{self.character if self.character else "You"}: {self.response}'
 
-    def serialize(self):
-        return {'role': self.role, 'content': self.content}
+    def serialize(self, compare=None):
+        return {'role': ai.Role.ASSISTANT if compare is self.character else ai.Role.USER, 'content': self.response}

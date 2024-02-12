@@ -115,9 +115,9 @@ class Session:
         self.response_word_count += len(chat.response.split())
 
         if settings.history.summary.user:
-            self.history.add(Moment(ai.Role.USER.value, prompt))
+            self.history.add(Moment(None, prompt))
         if settings.history.summary.assistant:
-            self.history.add(Moment(ai.Role.ASSISTANT.value, chat.response))
+            self.history.add(Moment(_input.character, chat.response))
 
         self.post_process()
 
