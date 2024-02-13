@@ -1,8 +1,8 @@
 characters:
-  - Little Lextra
-  - Dog
+  - Sierra
+  - Eight Ball
 tasks:
-  - Twitch Stream
+  - Help
 speech:
   channels: 1
   sample_rate: 44100

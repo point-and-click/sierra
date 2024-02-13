@@ -6,6 +6,6 @@ audio:
 transcribe: open_ai
 binds: # find the vk value using bind.py
 - vk: 18
-  character: Little Lextra
+  character: Sierra
 - vk: 19
-  character: Dog
+  character: Eight Ball

@@ -1,4 +1,5 @@
 import logging
+from math import ceil
 import random
 from glob import glob
 from os import path
@@ -11,7 +12,9 @@ from play.subtitles import transcript_from_text
 words_per_segment = 10
 time_per_word = 0.3
 
-affected_characters = {'Dog': 'bark'}
+affected_characters = {
+    'Eight Ball': 'shake'
+}
 
 
 class Initialize:
@@ -65,6 +68,6 @@ class PostTranscribe:
                 transcript_from_text(
                     chat.response,
                     AudioSegment.from_file(speech.path).duration_seconds,
-                    len(chat.response.split()) // words_per_segment
+                    int(ceil(len(chat.response.split()) / words_per_segment))
                 )
             )
