@@ -8,4 +8,4 @@ binds: # find the vk value using bind.py
 - vk: 18
   character: Little Lextra
 - vk: 19
-  character: Shoulder Boy
+  character: Dog

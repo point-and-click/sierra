@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+from utils.format import divide
+
 
 class Subtitles:
     def __init__(self, timestamp):
@@ -44,3 +46,18 @@ class Segment:
 
     def complete(self, start_time, time):
         return start_time + timedelta(seconds=self.start) + timedelta(seconds=self.duration) <= time
+
+
+def transcript_from_text(text, time, segments):
+    return {
+        'text': text,
+        'segments': [
+            {
+                'id': segment,
+                'seek': segment,
+                'text': divide(text, segments)[segment],
+                'start': segment * (time / segments),
+                'end': (segment + 1) * (time / segments)
+            } for segment in range(segments)
+        ]
+    }

@@ -34,3 +34,10 @@ if __name__ == '__main__':
                 if isfile(path.join(input_glob, 'requirements.txt')):
                     with open(path.join(input_glob, 'requirements.txt'), 'r') as requirements_file:
                         install(requirements_file)
+
+        # Install requirements for plugins
+        for input_glob in glob(path.join('plugins', '*')):
+            if isdir(input_glob):
+                if isfile(path.join(input_glob, 'requirements.txt')):
+                    with open(path.join(input_glob, 'requirements.txt'), 'r') as requirements_file:
+                        install(requirements_file)
