@@ -22,7 +22,8 @@ class History:
 
     def summarize(self, task):
         messages = [
-            *[{"role": ai.Role.ASSISTANT if entry.character else ai.Role.USER, "content": entry.response} for entry in
+            *[{"role": ai.Role.ASSISTANT.value if entry.character else ai.Role.USER.value, "content": entry.response}
+              for entry in
               self.get(self.summary_max_active_size)],
             {"role": ai.Role.SYSTEM, "content": task.summary.description}
         ]
@@ -41,4 +42,5 @@ class Moment:
         return f'{self.character if self.character else "You"}: {self.response}'
 
     def serialize(self, compare=None):
-        return {'role': ai.Role.ASSISTANT if compare is self.character else ai.Role.USER, 'content': self.response}
+        return {'role': ai.Role.ASSISTANT.value if compare is self.character else ai.Role.USER.value,
+                'content': self.response}

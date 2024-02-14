@@ -165,3 +165,4 @@ temp/*
 **/secrets.yaml
 **/user_token.json
 .DS_Store
+play/characters/.*
