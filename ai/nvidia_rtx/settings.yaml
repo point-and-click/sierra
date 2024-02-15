@@ -1,0 +1,9 @@
+items:
+  - key: whisper_model
+    value: base
+  - key: chat.model
+    value: gpt-3.5-turbo
+  - key: chat.tokens
+    value: 300
+  - key: transcribe.model
+    value: base

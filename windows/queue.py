@@ -6,7 +6,6 @@ from settings import sierra_settings
 from utils.format import truncate
 from windows import Window
 
-
 sprite_dimension = 32
 text_offset = 58
 
@@ -43,7 +42,7 @@ def path_as_sprite(path):
 
 class QueueWindow(Window):
     def __init__(self):
-        super().__init__('Input Queue', 512, 1080)
+        super().__init__('Queue', 512, 1080)
         red, green, blue = sierra_settings.visual.chroma_key
         pyglet.gl.glClearColor(red, green, blue, 1)
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
@@ -57,11 +56,13 @@ class QueueWindow(Window):
                 if len(self.panels) == 2:
                     pass
                 for i, panel in enumerate(self.panels):
-                    rectangle = shapes.BorderedRectangle(width=self.window.width, height=panel.height,
-                                                         x=0, y=self.window.height - panel.initial_offset - i * panel.additional_offset,
-                                                         color=palette.get(panel.source),
-                                                         border_color=border_palette.get(panel.source),
-                                                         border=panel.border)
+                    rectangle = shapes.BorderedRectangle(
+                        width=self.window.width, height=panel.height,
+                        x=0, y=self.window.height - panel.initial_offset - i * panel.additional_offset,
+                        color=palette.get(panel.source),
+                        border_color=border_palette.get(panel.source),
+                        border=panel.border
+                    )
                     rectangle.draw()
                     sprite = path_as_sprite(panel.image_path)
                     sprite.y = self.window.height - i * panel.additional_offset - sprite_dimension

@@ -5,8 +5,6 @@ import sys
 from datetime import datetime
 from threading import Thread
 
-import ai
-
 from ai.output import Output
 from play import Play
 from play.rules import RuleType

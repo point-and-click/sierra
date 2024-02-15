@@ -23,21 +23,18 @@ if __name__ == '__main__':
 
         # Install requirements for AI modules
         for ai_glob in glob(path.join('ai', '*')):
-            if isdir(ai_glob):
-                if isfile(path.join(ai_glob, 'requirements.txt')):
-                    with open(path.join(ai_glob, 'requirements.txt'), 'r') as requirements_file:
-                        install(requirements_file)
+            if isdir(ai_glob) and isfile(path.join(ai_glob, 'requirements.txt')):
+                with open(path.join(ai_glob, 'requirements.txt'), 'r') as requirements_file:
+                    install(requirements_file)
 
         # Install requirements for input modules
         for input_glob in glob(path.join('input', '*')):
-            if isdir(input_glob):
-                if isfile(path.join(input_glob, 'requirements.txt')):
-                    with open(path.join(input_glob, 'requirements.txt'), 'r') as requirements_file:
-                        install(requirements_file)
+            if isdir(input_glob) and isfile(path.join(input_glob, 'requirements.txt')):
+                with open(path.join(input_glob, 'requirements.txt'), 'r') as requirements_file:
+                    install(requirements_file)
 
         # Install requirements for plugins
         for input_glob in glob(path.join('plugins', '*')):
-            if isdir(input_glob):
-                if isfile(path.join(input_glob, 'requirements.txt')):
-                    with open(path.join(input_glob, 'requirements.txt'), 'r') as requirements_file:
-                        install(requirements_file)
+            if isdir(input_glob) and isfile(path.join(input_glob, 'requirements.txt')):
+                with open(path.join(input_glob, 'requirements.txt'), 'r') as requirements_file:
+                    install(requirements_file)

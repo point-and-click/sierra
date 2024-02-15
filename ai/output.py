@@ -5,5 +5,3 @@ class Output:
         self.chat = chat
         self.speech = speech
         self.subtitles = subtitles
-
-

@@ -1,6 +1,6 @@
 name: Speak Japanese
 description: >
-  I want you to have a conversation with but you should respond in Japanese.
+  I want you to have a conversation but you should respond in Japanese.
 
 summary:
   user: true
