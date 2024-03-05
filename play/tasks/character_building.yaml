@@ -1,0 +1,16 @@
+name: Character Building
+description: >
+  You are about to play DnD. You must first come up with a character sheet.
+
+
+summary:
+  user: true
+  assistant: true
+  description: >
+    Summarize the content using the following format. 
+    
+    Place emphasis on:
+    1) your primary objective
+    2) current goal 
+    3) Any steps we may want to take care of in the future
+    4) Items in inventory

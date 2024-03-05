@@ -4,6 +4,6 @@ items:
   - key: chat.model
     value: gpt-3.5-turbo
   - key: chat.tokens
-    value: 300
+    value: 500
   - key: transcribe.model
     value: base

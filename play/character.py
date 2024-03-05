@@ -90,7 +90,7 @@ class Character:
         if settings.transcribe.reconstitute:
             ai_output.subtitles.reconstitute(ai_output.chat.response)
 
-        log.info(f'\tCharacter ({self.name}): {truncate(ai_output.chat.response, 256)}')
+        log.info(f'\tCharacter ({self.name}): {ai_output.chat.response}')
         character_task = asyncio.create_task(self.window.speak(ai_output.speech))
         subtitle_task = asyncio.create_task(self.window.manager.subtitles.play(ai_output.subtitles))
 

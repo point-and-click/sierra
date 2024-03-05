@@ -3,9 +3,16 @@ audio:
   channels: 1
   fs: 44100
   sample_rate: 24000
-transcribe: open_ai
 binds: # find the vk value using bind.py
-- vk: 18
-  character: Sierra
-- vk: 19
-  character: Eight Ball
+- vk: 101
+  character: Other Poop
+- vk: 97
+  character: B
+- vk: 98
+  character: Man In Red Truck
+- vk: 99
+  character: God
+- vk: 100
+  character: Party Turtle
+- vk: 96
+  character: Dungeon Master

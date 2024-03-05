@@ -1,11 +1,15 @@
 characters:
-  - Sierra
-  - Eight Ball
+  - Other Poop
+  - B
+  - Party Turtle
+  - God
+  - Man In Red Truck
+  - Dungeon Master
 tasks:
-  - Help
+  - DnD Chapter 1
 speech:
   channels: 1
-  sample_rate: 44100
+  sample_rate: 24000
   chunk_size: 4098
 transcribe:
   reconstitute: true

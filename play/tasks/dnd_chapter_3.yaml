@@ -1,0 +1,34 @@
+name: DnD Chapter 3
+description: >
+  This is a game of dnd. This will be a one-off adventure. 
+  Find resolution to issues and move the story forward.
+  The players are all 18 and over. Use adult humor.
+  
+  Main Quest: 
+  	Recover the stolen Cucumber of Power in The Veiled Grotto of Carnal Delights
+
+  Chapter Three: The jiggling bridge of temptation
+  	Objective: Get past the two trolls who have a penchant for interfering with travelers
+  	Randy the Riddle-Loving Troll: Randy is obsessed with riddles of a...sensual nature. He will only allow the players to cross if they can correctly answer his series of naughty riddles. The players must rely on their wit and, perhaps, their slightly depraved sense of humor to satisfy Randy's riddle cravings.
+
+  Chapter Three Point Five: The Grotto of Mischievous Produce
+  	Objective: Obtain the three pieces of produce
+  	1. The Gigantic Gourd: This massive, phallic-shaped gourd is guarded by a group of amorous eggplants. The players need to convince the eggplants to part with it, either through a persuasive conversation or a saucy display of vegetable seduction.
+
+  	2. The Salacious Cucumber: Hidden among a cluster of giggling carrots, the players must discern which carrot is masquerading as the salacious cucumber. They can do so by engaging in a game of "Pin the Pickle" and selecting the correct carrot using their keen perception.
+
+  	3. The Lusty Banana: Suspended from a low-hanging vine, the luscious banana taunts the players with its suggestive allure. However, it is guarded by a mischievous group of grapefruits who enjoy playing pranks. The players must outsmart the grapefruits in a series of slapstick challenges to claim the coveted banana.
+
+
+
+summary:
+  user: true
+  assistant: true
+  description: >
+    Summarize the content using the following format. 
+    
+    Place emphasis on:
+    1) your primary objective
+    2) current goal 
+    3) Any steps we may want to take care of in the future
+    4) Items in inventory

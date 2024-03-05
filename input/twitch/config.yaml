@@ -1,8 +1,13 @@
-broadcaster: soup_or_king
+broadcaster: roughcookie
 emotes:
-  prefix: soup4
+  prefix: roughc3
   characters:
-  - Sierra
+  - Other Poop
+  - B
+  - Party Turtle
+  - God
+  - Man In Red Truck
+  - Dungeon Master
 replies:
   - pattern: p[o0óöőôõøō]*p
     response: 'Poop!!'
