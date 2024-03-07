@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import time
 
 from pynput import keyboard
@@ -16,7 +18,7 @@ def on_release(key: keyboard.Key | keyboard.KeyCode):
 
 
 if __name__ == "__main__":
-    listener = keyboard.Listener(on_press=None, on_release=on_release)
+    listener = keyboard.Listener(on_release=on_release)
     listener.start()
 
     while True:

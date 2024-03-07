@@ -1,11 +1,11 @@
-broadcaster: soup_or_king
+broadcaster: broadcaster
 emotes:
-  prefix: soup4
+  prefix: prefix
   characters:
   - Sierra
 replies:
-  - pattern: p[o0óöőôõøō]*p
-    response: 'Poop!!'
+  - pattern: Hello
+    response: 'Hello {data.event.user_name}!'
 events:
 - type: channel_point_redemption
   titles:
@@ -13,7 +13,7 @@ events:
     message: '{data.event.user_name} says {message}.'
   - title: Add a Rule
     function: rule
-    message: Thank {data.event.user_name} for instructing you to {message}.
+    message: 'Thank {data.event.user_name} for instructing you to {message}.'
 - type: cheer
   tiers:
   - tier: 1

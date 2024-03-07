@@ -42,5 +42,5 @@ class Moment:
         return f'{self.character if self.character else "You"}: {self.response}'
 
     def serialize(self, compare=None):
-        return {'role': ai.Role.ASSISTANT.value if compare is self.character else ai.Role.USER.value,
+        return {'role': ai.Role.ASSISTANT.value if compare == self.character else ai.Role.USER.value,
                 'content': self.response}

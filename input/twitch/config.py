@@ -18,6 +18,7 @@ class Secrets:
 class Emotes:
     def __init__(self, emotes):
         self.prefix = emotes.get('prefix', '')
+        self.default = emotes.get('default', '')
         self.characters = emotes.get('characters', [])
 
 

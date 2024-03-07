@@ -4,11 +4,18 @@ from utils.format import divide
 
 
 class Subtitles:
+    """
+    Subtitles class to represent a subtitle file.
+    :param timestamp: str
+    """
     def __init__(self, timestamp):
         self.timestamp = timestamp
         self.path = None
         self.transcript = None
         self.segments = None
+
+    def __repr__(self):
+        return self.path
 
     def set(self, transcript):
         self.path = f'temp/{self.timestamp}.srt'

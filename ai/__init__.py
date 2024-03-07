@@ -6,12 +6,18 @@ from os.path import isdir
 
 
 class Function(Enum):
+    """
+    The different functions that can be called on an AI.
+    """
     CHAT = "Chat"
     SPEAK = "Speak"
     TRANSCRIBE = "Transcribe"
 
 
 class Role(Enum):
+    """
+    The different roles that an AI can have.
+    """
     ASSISTANT = "assistant"
     USER = "user"
     SYSTEM = "system"
@@ -25,4 +31,10 @@ for ai_glob in glob(path.join('ai', '*')):
 
 
 def load(name, function):
+    """
+    `load` function to load a function from an AI.
+    :param name:
+    :param function:
+    :return:
+    """
     return getattr(ai.get(name), function.value)

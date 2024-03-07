@@ -23,28 +23,63 @@ replacements = {
     '\(([^\)]+?)\)': f'{format.color(palette.material.blue)}(\\g<1>){format.reset()}',
 }
 
+levels = {
+    'DEBUG': logging.DEBUG,
+    'INFO': logging.INFO,
+    'WARNING': logging.WARNING,
+    'ERROR': logging.ERROR
+}
+
 
 class Log:
+    logger = logging.getLogger('sierra')
+
     @staticmethod
-    def info(message):
+    def debug(message):
+        """
+        :param message:
+        """
         for pattern, replacement in replacements.items():
             message = re.sub(pattern, replacement, message)
 
-        logging.info(message)
+        Log.logger.debug(message)
+
+    @staticmethod
+    def info(message):
+        """
+        :param message:
+        """
+        for pattern, replacement in replacements.items():
+            message = re.sub(pattern, replacement, message)
+
+        Log.logger.info(message)
 
     @staticmethod
     def warning(message):
+        """
+        :param message:
+        """
         for pattern, replacement in replacements.items():
             message = re.sub(pattern, replacement, message)
 
-        logging.warning(message)
+        Log.logger.warning(message)
 
     @staticmethod
     def error(message):
+        """
+        :param message:
+        """
         for pattern, replacement in replacements.items():
             message = re.sub(pattern, replacement, message)
 
-        logging.error(message)
+        Log.logger.error(message)
+
+    @staticmethod
+    def set_level(level):
+        """
+        :param level:
+        """
+        Log.logger.setLevel(levels.get(level, logging.INFO))
 
 
 log = Log()

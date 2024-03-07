@@ -3,26 +3,27 @@ from datetime import datetime
 
 import pyglet
 
-from settings import sierra_settings
+from settings import sierra
 from windows import Window
 
 
 def segment_as_label(segment):
-    return pyglet.text.Label(
-        segment.text,
-        color=(255, 255, 255, 255),
-        font_name='Arial',
-        font_size=32,
-        x=0, anchor_x='left',
-        y=128, anchor_y='top',
-        multiline=True, width=1024
-    )
+    """
+    `segment_as_label` function to convert a `Segment` into a `pyglet.text.Label`.
+    :param segment:
+    :return:
+    """
+    return pyglet.text.Label(segment.text, color=(255, 255, 255, 255), font_name='Arial', font_size=32, y=127,
+                             anchor_y='top', multiline=True, width=1024)
 
 
 class SubtitlesWindow(Window):
+    """
+    `SubtitlesWindow` class to represent a window for displaying subtitles.
+    """
     def __init__(self, ):
         super().__init__('Subtitles', 1024, 128)
-        red, green, blue = sierra_settings.visual.chroma_key
+        red, green, blue = sierra.visual.chroma_key
         pyglet.gl.glClearColor(red, green, blue, 1)
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
@@ -31,6 +32,9 @@ class SubtitlesWindow(Window):
 
         @self.window.event
         def on_draw():
+            """
+            `on_draw` event to draw the window.
+            """
             self.window.clear()
             try:
                 if self.segment:
@@ -48,6 +52,10 @@ class SubtitlesWindow(Window):
                 pass
 
     async def play(self, subtitles):
+        """
+        `play` method to play the subtitles.
+        :param subtitles: Subtitles
+        """
         segment = iter(subtitles)
         self.segment = next(segment)
 

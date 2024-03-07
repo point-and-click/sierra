@@ -22,7 +22,7 @@ class InputController:
 
 class InputSettings:
     def __init__(self):
-        with open(path.join(path.split(path.relpath(__file__))[0], 'config.yaml'), 'r') as file:
+        with open(path.join(path.split(path.relpath(__file__))[0], 'config.yaml')) as file:
             self._raw = safe_load(file)
         self.characters = self._raw.get('characters', [])
 

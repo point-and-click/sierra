@@ -166,8 +166,11 @@ cython_debug/
 temp/*
 **/*.sierra
 **/secrets.yaml
-**/user_token.json
 
 # Prefix characters and tasks with . to avoid git tracking
-play/characters/.*
-play/tasks/.*
+play/characters/!*
+play/tasks/!*
+
+ai/*/
+input/*/
+plugins/*/*

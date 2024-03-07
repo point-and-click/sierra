@@ -1,2 +1,1 @@
-2FA required
-
+# Twitch for Sierra

@@ -13,7 +13,8 @@ words_per_segment = 10
 time_per_word = 0.3
 
 affected_characters = {
-    'Eight Ball': 'shake'
+    'Eight Ball': 'shake',
+    'Wah': 'wah'
 }
 
 
@@ -36,7 +37,7 @@ class PostSpeech:
     @staticmethod
     def hook(session, character, chat, speech):
         if character.name in affected_characters.keys():
-            voice_bank = glob(path.join(f'plugins/mumbo_jumbo/{affected_characters.get(character.name)}', '*'))
+            voice_bank = glob(path.join('plugins', 'mumbo_jumbo', 'assets', affected_characters.get(character.name), '*'))
             total_time = len(chat.response.split()) * time_per_word
 
             speech_time = 0

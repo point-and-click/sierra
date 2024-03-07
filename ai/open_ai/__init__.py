@@ -50,7 +50,7 @@ class Chat:
             messages.append(session.history.summary.serialize())
         if session.history.moments:
             messages.extend(
-                [entry.serialize(character) for entry in session.history.get()]
+                [entry.serialize(character.name) for entry in session.history.get()]
             )
         messages.append(
             {"role": ai.Role.USER.value,

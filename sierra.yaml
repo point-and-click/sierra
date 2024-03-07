@@ -1,13 +1,19 @@
+logging: DEBUG
 characters:
   - Sierra
   - Eight Ball
+  - Wah
 tasks:
   - Help
+chat:
+  service: open_ai
 speech:
+  service: elevenlabs
   channels: 1
   sample_rate: 44100
   chunk_size: 4098
 transcribe:
+  service: open_ai
   reconstitute: true
 visual:
   enabled: true

@@ -21,4 +21,4 @@ class Rule:
 class TemporaryRule(Rule):
     def __init__(self, json):
         super().__init__(json)
-        self.expiration_time = datetime.now() + timedelta(seconds=json.get('duration'))
+        self.expiration_time = datetime.now() + timedelta(minutes=json.get('duration', 30))

@@ -37,13 +37,13 @@ class InputController:
 
 class InputSettings:
     def __init__(self):
-        with open(path.join(path.split(path.relpath(__file__))[0], 'secrets.yaml'), 'r') as file:
+        with open(path.join(path.split(path.relpath(__file__))[0], 'secrets.yaml')) as file:
             yaml = safe_load(file)
         self.secrets = {
             ClientType.LISTENER: Secrets(yaml.get('listener')),
             ClientType.BOT: Secrets(yaml.get('bot'))
         }
-        with open(path.join(path.split(path.relpath(__file__))[0], 'config.yaml'), 'r') as file:
+        with open(path.join(path.split(path.relpath(__file__))[0], 'config.yaml')) as file:
             yaml = safe_load(file)
         self.broadcaster = yaml.get('broadcaster', [])
         self.bot = yaml.get('bot', {})

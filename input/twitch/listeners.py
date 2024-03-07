@@ -3,10 +3,6 @@ import re
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.helper import first
 from twitchAPI.oauth import UserAuthenticationStorageHelper
-from twitchAPI.object.eventsub import (ChannelCheerEvent, ChannelPointsCustomRewardRedemptionAddEvent,
-                                       ChannelSubscribeEvent, ChannelSubscriptionGiftEvent, ChannelFollowEvent,
-                                       ChannelPollBeginEvent, ChannelPollEndEvent, ChannelRaidEvent, HypeTrainEvent,
-                                       HypeTrainEndEvent, ChannelPredictionEvent, ChannelPredictionEndEvent)
 from twitchAPI.twitch import Twitch
 from twitchAPI.type import AuthScope
 
@@ -27,6 +23,14 @@ target_scopes = [
 
 
 class Listener:
+    """
+    :param client:
+    :param helper:
+    :param events:
+    :param emotes:
+    :param event_sub:
+    :param user:
+    """
     def __init__(self, client, helper, events, emotes, event_sub, user):
         self.client = client
         self.helper = helper
@@ -37,6 +41,12 @@ class Listener:
 
     @classmethod
     async def create(cls, secrets, events, emotes):
+        """
+        :param secrets:
+        :param events:
+        :param emotes:
+        :return:
+        """
         client = await Twitch(secrets.app_id, secrets.app_secret)
         helper = UserAuthenticationStorageHelper(client, target_scopes)
         await helper.bind()
@@ -47,6 +57,9 @@ class Listener:
         return Listener(client, helper, events, emotes, event_sub, user)
 
     async def start(self):
+        """
+        :return: None
+        """
         self.event_sub.start()
 
         await self.event_sub.listen_channel_cheer(
@@ -100,7 +113,10 @@ class Listener:
         )
         log.info('Listening for Twitch events.')
 
-    async def on_channel_point_redemption(self, data: ChannelPointsCustomRewardRedemptionAddEvent):
+    async def on_channel_point_redemption(self, data):
+        """
+        :param data: ChannelPointsCustomRewardRedemptionAddEvent
+        """
         character, message = process(self.emotes, data.event.user_input)
 
         events = self.events.map.get('channel_point_redemption')
@@ -121,7 +137,10 @@ class Listener:
                     'twitch'
                 )
 
-    async def on_cheer(self, data: ChannelCheerEvent):
+    async def on_cheer(self, data):
+        """
+        :param data: ChannelCheerEvent
+        """
         character, message = process(self.emotes, data.event.message)
 
         message = re.sub(r'\bcheer\d+\b', '', message, flags=re.IGNORECASE)
@@ -135,7 +154,10 @@ class Listener:
             'twitch'
         )
 
-    async def on_follow(self, data: ChannelFollowEvent):
+    async def on_follow(self, data):
+        """
+        :param data: ChannelFollowEvent
+        """
         events = self.events.map.get('follow')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.followed_at], default=1))
 
@@ -145,7 +167,10 @@ class Listener:
             'twitch'
         )
 
-    async def on_hype_train_start(self, data: HypeTrainEvent):
+    async def on_hype_train_start(self, data):
+        """
+        :param data: HypeTrainEvent
+        """
         events = self.events.map.get('hype_train_start')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.level], default=1))
 
@@ -155,7 +180,10 @@ class Listener:
             'twitch'
         )
 
-    async def on_hype_end(self, data: HypeTrainEndEvent):
+    async def on_hype_end(self, data):
+        """
+        :param data: HypeTrainEndEvent
+        """
         events = self.events.map.get('hype_end')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.level], default=1))
 
@@ -165,7 +193,10 @@ class Listener:
             'twitch'
         )
 
-    async def on_poll_begin(self, data: ChannelPollBeginEvent):
+    async def on_poll_begin(self, data):
+        """
+        :param data: ChannelPollBeginEvent
+        """
         events = self.events.map.get('poll_begin')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.choices)], default=1))
 
@@ -175,7 +206,10 @@ class Listener:
             'twitch'
         )
 
-    async def on_poll_end(self, data: ChannelPollEndEvent):
+    async def on_poll_end(self, data):
+        """
+        :param data: ChannelPollEndEvent
+        """
         events = self.events.map.get('poll_end')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.choices)], default=1))
 
@@ -185,7 +219,10 @@ class Listener:
             'twitch'
         )
 
-    async def on_prediction(self, data: ChannelPredictionEvent):
+    async def on_prediction(self, data):
+        """
+        :param data: ChannelPredictionEvent
+        """
         events = self.events.map.get('prediction')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.outcomes)], default=1))
 
@@ -195,7 +232,10 @@ class Listener:
             'twitch'
         )
 
-    async def on_prediction_end(self, data: ChannelPredictionEndEvent):
+    async def on_prediction_end(self, data):
+        """
+        :param data: ChannelPredictionEndEvent
+        """
         events = self.events.map.get('prediction_end')
         event = events.get(max([tier for tier in events.keys() if tier <= len(data.event.outcomes)], default=1))
 
@@ -205,7 +245,10 @@ class Listener:
             'twitch'
         )
 
-    async def on_raid(self, data: ChannelRaidEvent):
+    async def on_raid(self, data):
+        """
+        :param data: ChannelRaidEvent
+        """
         events = self.events.map.get('raid')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.viewers], default=1))
 
@@ -215,7 +258,10 @@ class Listener:
             'twitch'
         )
 
-    async def on_subscribe(self, data: ChannelSubscribeEvent):
+    async def on_subscribe(self, data):
+        """
+        :param data: ChannelSubscribeEvent
+        """
         events = self.events.map.get('subscribe')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.tier], default=1))
 
@@ -225,7 +271,10 @@ class Listener:
             'twitch'
         )
 
-    async def on_subscribe_gift(self, data: ChannelSubscriptionGiftEvent):
+    async def on_subscribe_gift(self, data):
+        """
+        :param data: ChannelSubscriptionGiftEvent
+        """
         events = self.events.map.get('subscribe_gift')
         event = events.get(max([tier for tier in events.keys() if tier <= data.event.tier], default=1))
 
@@ -237,6 +286,11 @@ class Listener:
 
 
 def process(emotes, message):
+    """
+    :param emotes:
+    :param message:
+    :return:
+    """
     characters = re.findall(rf'{emotes.prefix}(\S+)', message, flags=re.IGNORECASE)
     message = re.sub(rf'{emotes.prefix}(\S+)', '', message, flags=re.IGNORECASE)
 

@@ -4,6 +4,9 @@ class Chat:
         self.path = None
         self.response = None
 
+    def __repr__(self):
+        return self.path
+
     def set(self, response):
         self.path = f'temp/{self.timestamp}.txt'
         self.response = response

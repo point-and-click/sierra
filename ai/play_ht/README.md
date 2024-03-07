@@ -1,1 +1,1 @@
-# System Requirements
+# PlayHT for Sierra

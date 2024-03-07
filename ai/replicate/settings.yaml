@@ -1,0 +1,3 @@
+items:
+  - key: chat.model
+    value: claude-3-sonnet-20240229

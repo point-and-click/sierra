@@ -11,28 +11,46 @@ from utils.logging import log
 
 
 class Service:
+    """
+    `Service` class to represent a service.
+    """
     def __init__(self):
         self.thread = Thread(target=Service.thread)
 
     @staticmethod
     def thread():
+        """
+        `thread` method to start the service.
+        """
         log.info('Starting Session ...')
         asyncio.run(session.gather())
 
     def start(self):
+        """
+        `start` method to start the service.
+        """
         self.thread.start()
 
 
 class API:
+    """
+    `API` class to represent an API.
+    """
     def __init__(self):
         self.thread = Thread(target=API.thread)
 
     @staticmethod
     def thread():
+        """
+        `thread` method to start the API.
+        """
         log.info('Starting API ...')
         sierra.run(port=8008)
 
     def start(self):
+        """
+        `start` method to start the API.
+        """
         self.thread.start()
 
 
@@ -49,6 +67,7 @@ if __name__ == '__main__':
                 log.info(''.join([f'{i}: {save}\n' for i, save in enumerate(saves)]))
                 index = int(input('Load save: '))
                 session.load(saves[index])
+                session.windows.associate(session)
 
         Service().start()
         API().start()

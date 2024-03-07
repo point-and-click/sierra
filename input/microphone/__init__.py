@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import time
 import wave
@@ -94,7 +96,7 @@ class InputController:
 
 class InputSettings:
     def __init__(self):
-        with open(path.join(path.split(path.relpath(__file__))[0], 'config.yaml'), 'r') as file:
+        with open(path.join(path.split(path.relpath(__file__))[0], 'config.yaml')) as file:
             self._raw = safe_load(file)
         self.audio = Audio(self._raw.get('audio', {}))
         self.binds = {bind.vk: bind for bind in [Bind(bind) for bind in self._raw.get('binds', [])]}

@@ -2,7 +2,7 @@ import pyglet
 from pyglet import shapes
 
 from play import Play
-from settings import sierra_settings
+from settings import sierra
 from utils.format import truncate
 from windows import Window
 
@@ -11,26 +11,29 @@ text_offset = 58
 
 palette = {
     "twitch": (100, 65, 165),
-    "microphone": (0, 114, 178)
+    "microphone": (0, 114, 178),
+    "keyboard": (0, 158, 115),
 }
 
 border_palette = {key: tuple(int(v * 0.5) for v in value) for key, value in palette.items()}
 
 
 def text_as_label(text):
-    return pyglet.text.Label(
-        text,
-        color=(255, 255, 255, 255),
-        font_name='Arial',
-        font_size=16,
-        x=text_offset, anchor_x='left',
-        anchor_y='center',
-        multiline=False,
-        width=512 - text_offset
-    )
+    """
+
+    :param text: str
+    :return: pyglet.text.Label
+    """
+    return pyglet.text.Label(text, color=(255, 255, 255, 255), font_name='Arial', font_size=16, x=text_offset,
+                             anchor_y='center', width=512 - text_offset)
 
 
 def path_as_sprite(path):
+    """
+
+    :param path: str
+    :return: pyglet.sprite.Sprite
+    """
     image = pyglet.resource.image(path)
     image.anchor_y = image.height / 2
     sprite = pyglet.sprite.Sprite(image)
@@ -41,9 +44,12 @@ def path_as_sprite(path):
 
 
 class QueueWindow(Window):
+    """
+    `QueueWindow` class to represent a window for displaying the queue.
+    """
     def __init__(self):
-        super().__init__('Queue', 512, 1080)
-        red, green, blue = sierra_settings.visual.chroma_key
+        super().__init__('Queue', 512, 1024)
+        red, green, blue = sierra.visual.chroma_key
         pyglet.gl.glClearColor(red, green, blue, 1)
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
         pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
@@ -51,6 +57,9 @@ class QueueWindow(Window):
 
         @self.window.event
         def on_draw():
+            """
+            `on_draw` event to draw the window.
+            """
             self.window.clear()
             if self.panels:
                 if len(self.panels) == 2:
@@ -80,9 +89,17 @@ class QueueWindow(Window):
                     label.draw()
 
     def add_panel(self, _input):
+        """
+        `add_panel` method to add a panel to the window.
+        :param _input: Input
+        """
         self.panels.append(self._QueuePanel(_input))
 
     def remove_panel(self, _id):
+        """
+        `remove_panel` method to remove a panel from the window.
+        :param _id: str
+        """
         self.panels = [panel for panel in self.panels if panel.id != _id]
 
     class _QueuePanel:
