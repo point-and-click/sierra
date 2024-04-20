@@ -1,1 +1,0 @@
-# PlayHT for Sierra
