@@ -1,0 +1,3 @@
+git@github.com:point-and-click/elevenlabs.git
+git@github.com:point-and-click/open_ai.git
+git@github.com:point-and-click/play_ht.git

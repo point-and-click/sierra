@@ -1,20 +1,17 @@
-from datetime import datetime
-
-import ai
-from play import Character
-from settings import sierra_settings as settings
-
-
 class Output:
-    def __init__(self, character: Character, audio_bytes):
+    """
+    Output class to store the output of the AI
+    """
+    def __init__(self, _id, character, chat, speech, subtitles):
+        """
+        :param _id: str
+        :param character: Character
+        :param chat: Chat
+        :param speech: Speech
+        :param subtitles: Subtitles
+        """
+        self.id = _id
         self.character = character
-        self.audio = SpeakOutput(audio_bytes)
-        self.subtitles = ai.load(settings.transcribe.module, ai.Function.TRANSCRIBE)().send(self.audio.path)
-
-
-class SpeakOutput:
-    def __init__(self, audio_bytes):
-        self.bytes = audio_bytes
-        self.path = f'temp/{datetime.now().strftime("%Y-%m-%d %H-%M-%S+%f")}'
-        with open(self.path, "wb") as audio_file:
-            audio_file.write(self.bytes)
+        self.chat = chat
+        self.speech = speech
+        self.subtitles = subtitles

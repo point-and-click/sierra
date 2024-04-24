@@ -1,0 +1,3 @@
+git@github.com:point-and-click/keyboard.git
+git@github.com:point-and-click/microphone.git
+git@github.com:point-and-click/twitch.git

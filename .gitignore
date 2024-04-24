@@ -159,9 +159,18 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
-# Custom
-temp/*
-*.sierra
-**/secrets.yaml
-**/user_token.json
+# Mac
 .DS_Store
+
+# Sierra
+temp/*
+**/*.sierra
+**/secrets.yaml
+
+# Prefix characters and tasks with . to avoid git tracking
+play/characters/!*
+play/tasks/!*
+
+ai/*/
+input/*/
+plugins/*/

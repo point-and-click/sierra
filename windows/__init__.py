@@ -4,6 +4,9 @@ from utils.logging import log
 
 
 class Window:
+    """
+    `Window` class to represent a window.
+    """
     def __init__(self, name, width, height):
         self.manager = Manager()
         self.name = name
@@ -29,6 +32,9 @@ class Window:
 
 
 class Manager:
+    """
+    `Manager` class to manage windows.  This is a singleton class.
+    """
     _instance = None
     _initialized = False
 
@@ -41,12 +47,28 @@ class Manager:
         if not self._initialized:
             self.characters = {}
             self.subtitles = None
+            self.queue = None
 
             self._initialized = True
 
     def start(self):
+        """
+        `start` method to start the visual.
+        """
         log.info(f'Starting Visual (x{len(self.characters.keys())}) ...')
         pyglet.app.run()
 
     def register(self, window: Window):
+        """
+        `register` method to register a window.
+        :param window: Window
+        """
         self.characters[window.name] = window
+
+    def associate(self, session):
+        """
+        `associate` method to associate windows.
+        :param session: Session
+        """
+        for character in session.characters.values():
+            character.window = self.characters[character.name]

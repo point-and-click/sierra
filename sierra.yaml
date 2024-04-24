@@ -1,18 +1,19 @@
+logging: DEBUG
 characters:
   - Sierra
+  - Eight Ball
 tasks:
   - Help
 chat:
-  module: open_ai
+  service: open_ai
 speech:
-  enabled: true
-  module: elevenlabs
+  service: elevenlabs
   channels: 1
   sample_rate: 44100
   chunk_size: 4098
 transcribe:
-  module: open_ai
-  model: base
+  service: open_ai
+  reconstitute: true
 visual:
   enabled: true
   chroma_key: 0,255,0
@@ -24,11 +25,11 @@ visual:
       name: beep
       size: 42
       bold: true
-summary:
-  assistant: true
-  user: true
-  max_words: 1200
-  review: true
 history:
-  max: 20
-  preserve_lines: 4
+  max_active_size: 20
+  summary:
+    ai: open_ai
+    assistant: true
+    user: true
+    max_active_size: 40
+    review: true
