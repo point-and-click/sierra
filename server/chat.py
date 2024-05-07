@@ -1,7 +1,7 @@
 import requests
 from flask import request, Blueprint
 
-from ai.input import Input
+from server.input import Input
 from play.sessions import Session
 
 chats = Blueprint('chat', __name__)

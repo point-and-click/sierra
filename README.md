@@ -17,22 +17,29 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-Run the setup script to install dependencies from the `ai/` and `input/` modules.
+Run the setup script to install modules and dependencies.
 ```bash
-python setup.py install
+python setup.py clone install copy
 ```
 
 ### Usage
 
-For your convenience, run configurations are provided for PyCharm.
-
-If you are using another IDE or wish to run the program from the command line, the configurations are pretty easy to reproduce.
+``` bash
+python sierra.py
+```
 
 ## Characters
 
 Sierra is provided with example characters that can be used as a starting point for your own characters.
 
+- Sierra
+- Eight Ball
+
 ## Tasks
+
+- Help
+- Chess
+- Speak Japanese
 
 Sierra is provided with example tasks that can be used as a starting point for your own tasks.
 

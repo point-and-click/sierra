@@ -2,29 +2,29 @@ import subprocess
 import sys
 from glob import glob
 from os.path import isdir, isfile, join
+from shutil import copy
+
+from yaml import safe_load
 
 
-def gather(modules, module_type):
+def clone(repository, path):
     """
-    `gather` function to clone repositories from a file.
-    :param modules: TextIO
-    :param module_type: string
-    """
+    `gather` function to clone repositories to a specific path.
+    :param repository: string
+    :param path: string    """
 
-    for repository in [repository for repository in modules.readlines() if repository.strip()]:
-        repository = repository.strip()
-        destination = f"{module_type}/{repository.split('/')[-1].split('.')[0]}"
-        try:
-            subprocess.check_call(
-                [
-                    "git",
-                    "clone",
-                    repository,
-                    destination
-                ]
-            )
-        except subprocess.CalledProcessError:
-            print(f'{repository} already exists. Skipping...')
+    destination = f"{path}/{repository.split('/')[-1].split('.')[0]}"
+    try:
+        subprocess.check_call(
+            [
+                "git",
+                "clone",
+                repository,
+                destination
+            ]
+        )
+    except subprocess.CalledProcessError:
+        print(f'{repository} already exists. Skipping...')
 
 
 def install(requirements):
@@ -50,20 +50,42 @@ def install(requirements):
 if __name__ == '__main__':
     args = sys.argv[1:]
 
-    module_types = ['ai', 'input', 'plugins']
+    with open("config/modules.yaml") as modules_file:
+        modules_yaml = safe_load(modules_file)
 
-    if 'gather' in args:
-        for module_type in module_types:
-            with open(join(module_type, 'modules.txt')) as modules_file:
-                gather(modules_file, module_type)
+    if 'clone' in args:
+        with open("config/modules.yaml") as modules_file:
+            modules_yaml = safe_load(modules_file)
+
+        for module_type, repositories in modules_yaml.items():
+            for repository in repositories:
+                clone(repository, module_type)
+
 
     if 'install' in args:
+        subprocess.check_call(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "pip"
+            ]
+        )
+
         # Install requirements for Sierra
         with open('requirements.txt') as requirements_file:
             install(requirements_file)
 
-        for module_type in module_types:
+        for module_type, _ in modules_yaml.items():
             for module_glob in glob(join(module_type, '*')):
                 if isdir(module_glob) and isfile(join(module_glob, 'requirements.txt')):
                     with open(join(module_glob, 'requirements.txt')) as requirements_file:
                         install(requirements_file)
+
+    if 'copy' in args:
+        for module_type, _ in modules_yaml.items():
+            for module_glob in glob(join(module_type, '*')):
+                if isdir(module_glob) and isfile(join(module_glob, 'secrets.yaml.example')):
+                    copy(join(module_glob, 'secrets.yaml.example'), join(module_glob, 'secrets.yaml'))

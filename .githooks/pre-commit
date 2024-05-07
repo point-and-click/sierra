@@ -1,5 +1,0 @@
-#!/bin/sh
-
-echo "running pre-commit hook"
-flake8 .
-gitleaks detect --source . --verbose

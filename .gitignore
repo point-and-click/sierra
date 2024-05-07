@@ -167,10 +167,10 @@ temp/*
 **/*.sierra
 **/secrets.yaml
 
-# Prefix characters and tasks with . to avoid git tracking
-play/characters/!*
-play/tasks/!*
+ai/**
+input/**
+plugins/**
 
-ai/*/
-input/*/
-plugins/*/
+# Prefix characters and tasks with . to avoid git tracking
+config/characters/!*
+config/tasks/!*
