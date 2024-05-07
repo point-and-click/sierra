@@ -1,2 +1,0 @@
-git@github.com:point-and-click/mumbo_jumbo.git
-git@github.com:point-and-click/stone_wall.git

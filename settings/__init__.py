@@ -75,4 +75,4 @@ class Sierra:
                 self.review = summary_settings.get('review')
 
 
-sierra = Sierra('sierra.yaml')
+sierra = Sierra('config/sierra.yaml')

@@ -1,7 +1,7 @@
 from flask import Flask
 
-from input.chat import chats
-from input.rule import rules
+from server.chat import chats
+from server.rule import rules
 
 sierra = Flask("input")
 sierra.register_blueprint(chats)

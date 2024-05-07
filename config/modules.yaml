@@ -1,0 +1,12 @@
+ai:
+  - https://github.com/point-and-click/elevenlabs.git
+  - https://github.com/point-and-click/open_ai.git
+  - https://github.com/point-and-click/play_ht.git
+  - https://github.com/point-and-click/ollama.git
+input:
+  - https://github.com/point-and-click/keyboard.git
+  - https://github.com/point-and-click/microphone.git
+  - https://github.com/point-and-click/twitch.git
+plugins:
+  - https://github.com/point-and-click/mumbo_jumbo.git
+  - https://github.com/point-and-click/stone_wall.git
